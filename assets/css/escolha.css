@@ -1,0 +1,117 @@
+/* Reset básico */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --fundo-pagina: #e6f4ff;
+    --fundo-card: #ffffff;
+    --texto-principal: #1f2933;
+    --texto-secundario: #6b7280;
+    --sombra-card: 0 10px 26px rgba(0, 0, 0, 0.18);
+    --borda-card: #e0e7ff;
+}
+
+/* Fundo geral */
+body {
+    font-family: "Poppins", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        sans-serif;
+    background-color: var(--fundo-pagina);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Container principal */
+.tela-escolha {
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 16px;
+}
+
+.conteudo-escolha {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Título e subtítulo */
+.texto-escolha {
+    text-align: center;
+    margin-bottom: 32px;
+}
+
+.texto-escolha h1 {
+    font-size: 1.8rem;
+    font-weight: 500;
+    color: var(--texto-principal);
+    margin-bottom: 6px;
+}
+
+.texto-escolha p {
+    font-size: 0.95rem;
+    color: var(--texto-secundario);
+}
+
+/* Cards dos perfis */
+.cards-perfil {
+    display: flex;
+    gap: 16px;
+}
+
+/* Cada card */
+.card-perfil {
+    width: 150px;
+    background-color: var(--fundo-card);
+    border-radius: 18px;
+    padding: 16px 12px 14px;
+    box-shadow: var(--sombra-card);
+    border: 1px solid var(--borda-card);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-decoration: none;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.card-perfil:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 14px 30px rgba(0, 0, 0, 0.2);
+}
+
+/* Ícone dentro do card */
+.icone-perfil {
+    width: 90px;
+    height: 90px;
+    margin-bottom: 10px;
+}
+
+.icone-perfil img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+/* Nome do perfil (Motorista / Aluno) */
+.nome-perfil {
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--texto-principal);
+}
+
+/* Responsivo: em telas bem estreitas, coloca um card embaixo do outro */
+@media (max-width: 480px) {
+    .cards-perfil {
+        flex-direction: column;
+    }
+
+    .card-perfil {
+        width: 180px;
+    }
+}
