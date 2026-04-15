@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vantrack</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <link rel="stylesheet" href="assets/css/global.css">
+    <link rel="stylesheet" href="assets/css/components.css">
+    <link rel="stylesheet" href="assets/css/recuperar-senha.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo-recuperar">
+                <img src="assets/img/van.png.png" alt="Ônibus" class="logo-bus-img">
+                <h1>Recuperar <br> Senha</h1>
+                <img src="assets/img/van.png.png" alt="Ônibus pequeno" class="logo-bus-img small-bus-img">
+            </div>
+            <p>
+                Digite seu endereço de e-mail para <br> receber instruções para redefinir sua senha.
+            </p>
+        </div>
+
+        <div class="form-card">
+            <form id="form-recuperar" action="#" method="POST">
+                <div class="input-group">
+                    <i class="fas fa-envelope icon-email"></i>
+                    <input type="email" id="email" name="email" placeholder="E-mail" required>
+                    <img src="assets/img/van.png.png" alt="Ônibus" class="icon-input-bus-img">
+                </div>
+                <button type="submit" class="btn-enviar">Enviar</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="assets/js/config.js"></script>
+    <script src="assets/js/validators.js"></script>
+    <script src="assets/js/ui-feedback.js"></script>
+    <script src="assets/js/script.js"></script>
+</body>
+</html>

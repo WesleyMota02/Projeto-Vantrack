@@ -1,0 +1,34 @@
+# === Configurações de IA e Contexto (Personalizado) ===
+# Ignora os ficheiros de regras e contexto do Claude
+project.md
+claude.md
+
+# === Sistema Operativo ===
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# === IDEs e Editores ===
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# === Back-end e Ambientes (Python/Node) ===
+# Se utilizar Python para o back-end
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+env/
+.env
+
+# Se utilizar pacotes Node.js futuramente
+node_modules/
+npm-debug.log*
+
+# === Ficheiros Temporários e Binários ===
+*.rar
+*.zip
+*.7z
+*.log

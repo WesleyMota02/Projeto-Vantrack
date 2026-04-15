@@ -1,0 +1,129 @@
+body {
+  background: linear-gradient(135deg, #0F6CD5 0%, #0a56ac 50%, #07427b 100%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+.container {
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+}
+
+.header {
+  color: var(--white);
+  margin-bottom: 25px;
+}
+
+.logo-recuperar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: -5px;
+}
+
+.logo-recuperar h1 {
+  font-size: 2.2rem;
+  font-weight: bold;
+  line-height: 1.1;
+}
+
+.logo-bus-img {
+  width: 100px;
+  height: auto;
+}
+
+.small-bus-img {
+  width: 60px;
+  height: auto;
+}
+
+.header p {
+  font-size: 0.95rem;
+  line-height: 1.4;
+  font-weight: 300;
+  margin-top: 8px;
+}
+
+.form-card {
+  background-color: var(--white);
+  border-radius: 15px;
+  padding: 25px;
+  box-shadow: var(--shadow-md);
+}
+
+.input-group {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--border-gray);
+  border-radius: 8px;
+  padding: 6px 15px;
+  margin-bottom: 20px;
+  background-color: var(--white);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.input-group:focus-within {
+  border-color: var(--text-secondary);
+  box-shadow: 0 0 0 2px rgba(160, 160, 160, 0.2);
+}
+
+.input-group input {
+  border: none;
+  outline: none;
+  flex: 1;
+  font-size: 1rem;
+  padding-left: 10px;
+  padding-top: 0;
+  padding-bottom: 0;
+  color: var(--text-primary);
+}
+
+.icon-email {
+  color: #616161;
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.icon-input-bus-img {
+  display: none;
+}
+
+.btn-enviar {
+  width: 100%;
+  padding: 12px;
+  background-color: #0099ff;
+  color: var(--white);
+  border: none;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.btn-enviar:hover {
+  background-color: #007acc;
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 10px;
+  }
+
+  .logo-recuperar h1 {
+    font-size: 2rem;
+  }
+
+  .logo-bus-img {
+    width: 60px;
+  }
+
+  .small-bus-img {
+    width: 40px;
+  }
+}
