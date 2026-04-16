@@ -11,8 +11,8 @@
    VARIÁVEIS DE COR
 ========================= */
 :root {
-    --azul-fundo:   #e6f4ff;  /* fundo clarinho */
-    --azul-faixa:   #bfe3ff;  /* faixa no topo   */
+    --azul-fundo:   #e6f4ff;
+    --azul-faixa:   #bfe3ff;
     --azul-botao:   #0F6CD5;
     --branco:       #ffffff;
     --cinza-borda:  #d9e0ea;
@@ -32,18 +32,6 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-}
-
-/* faixinha azul no topo da tela */
-body::before {
-    content: "";
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 0;
-    background-color: transparent;
-    z-index: -1;
 }
 
 /* =========================
@@ -72,7 +60,7 @@ body::before {
     flex-direction: column;
     align-items: center;
     gap: 10px;
-    margin-bottom: 18px; /* espaço até o card branco */
+    margin-bottom: 18px;
 }
 
 .icone-motorista,
@@ -85,7 +73,7 @@ body::before {
 .topo-cadastro h1 {
     font-size: 1.9rem;
     font-weight: 500;
-    color: #1f2933;
+    color: #ffffff;
 }
 
 /* =========================
@@ -100,7 +88,6 @@ body::before {
     padding: 26px 26px 24px;
 }
 
-/* garante que não tenha pseudo-elemento de fundo aqui */
 #card-cadastro::before {
     content: none;
 }
@@ -112,7 +99,7 @@ body::before {
     width: 100%;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 16px;
 }
 
 /* campo com ícone */

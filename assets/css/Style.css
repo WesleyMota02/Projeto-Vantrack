@@ -1,11 +1,9 @@
-/* Reset básico */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
-/* Variáveis de cor (ajuste se quiser) */
 :root {
     --azul-fundo: #05386B;
     --azul-escuro: #03254a;
@@ -27,8 +25,8 @@ body {
 #tela-cadastro {
     min-height: 100vh;
     display: flex;
-    align-items: center;        /* centraliza vertical */
-    justify-content: center;    /* centraliza horizontal */
+    align-items: center;
+    justify-content: center;
     padding: 24px 16px;
 }
 
@@ -88,16 +86,13 @@ body {
     content: none;
 }
 
-
-/* Formulário */
 #form-cadastro {
     width: 100%;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 16px;
 }
 
-/* Campo com ícone */
 .campo {
     display: flex;
     align-items: center;
@@ -113,7 +108,6 @@ body {
     color: var(--cinza-placeholder);
 }
 
-/* Input */
 .campo input {
     flex: 1;
     border: none;
@@ -128,7 +122,6 @@ body {
     color: var(--cinza-placeholder);
 }
 
-/* Campo de senha com botão de mostrar */
 .campo-senha {
     position: relative;
     padding-right: 6px;
