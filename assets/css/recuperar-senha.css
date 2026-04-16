@@ -1,5 +1,5 @@
 body {
-  background: linear-gradient(135deg, #0F6CD5 0%, #0a56ac 50%, #07427b 100%);
+  background: linear-gradient(180deg, #07427b, #031c3c);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -15,7 +15,7 @@ body {
 
 .header {
   color: var(--white);
-  margin-bottom: 25px;
+  margin-bottom: 40px;
 }
 
 .logo-recuperar {
@@ -23,7 +23,7 @@ body {
   align-items: center;
   justify-content: center;
   gap: 10px;
-  margin-bottom: -5px;
+  margin-bottom: 15px;
 }
 
 .logo-recuperar h1 {
