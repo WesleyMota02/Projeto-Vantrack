@@ -21,13 +21,14 @@ def criar_app():
     db = Database(app.config['DATABASE_URL'])
     app.db = db
 
-    from presentation.routes import auth_routes, usuario_routes, veiculo_routes, rota_routes, inscricao_routes, gps_routes
+    from presentation.routes import auth_routes, usuario_routes, veiculo_routes, rota_routes, inscricao_routes, gps_routes, dashboard_routes
     app.register_blueprint(auth_routes.bp)
     app.register_blueprint(usuario_routes.bp)
     app.register_blueprint(veiculo_routes.bp)
     app.register_blueprint(rota_routes.bp)
     app.register_blueprint(inscricao_routes.bp)
     app.register_blueprint(gps_routes.bp)
+    app.register_blueprint(dashboard_routes.bp)
 
     @app.errorhandler(404)
     def nao_encontrado(e):
