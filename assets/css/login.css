@@ -65,9 +65,9 @@ body {
   background-color: var(--input-bg);
   border-radius: 8px;
   border: 1px solid var(--border-gray);
-  padding: 10px 12px;
+  padding: 8px 12px;
   gap: 8px;
-  height: 42px;
+  height: 38px;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -78,7 +78,7 @@ body {
 
 .input-com-icone i {
   color: #0099ff;
-  font-size: 18px;
+  font-size: 16px;
   flex-shrink: 0;
 }
 
@@ -145,7 +145,7 @@ body {
 }
 
 .dropdown-item {
-  padding: 10px 12px;
+  padding: 8px 12px;
   color: var(--text-primary);
   cursor: pointer;
   transition: background-color 0.2s ease;
@@ -169,7 +169,7 @@ body {
   border: none;
   color: #0099ff;
   cursor: pointer;
-  font-size: 18px;
+  font-size: 16px;
   padding: 0;
   flex-shrink: 0;
   display: flex;
@@ -204,9 +204,9 @@ body {
   background-color: #0099ff;
   color: var(--white);
   border: none;
-  padding: 12px 20px;
+  padding: 10px 20px;
   border-radius: 8px;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 600;
   cursor: pointer;
   margin-top: 10px;
