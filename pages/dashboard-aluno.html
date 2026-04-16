@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard - Aluno/Pais</title>
+  <link rel="stylesheet" href="../assets/css/global.css" />
+  <link rel="stylesheet" href="../assets/css/dashboard.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <div class="dashboard-container">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <i class="fas fa-user-circle"></i>
+        <h3 id="aluno-nome">Aluno</h3>
+      </div>
+
+      <nav class="sidebar-menu">
+        <a href="#rastreamento" class="menu-item active" data-menu="rastreamento">
+          <i class="fas fa-map-marker-alt"></i>
+          <span>Rastreamento</span>
+        </a>
+        <a href="#frequencia" class="menu-item" data-menu="frequencia">
+          <i class="fas fa-calendar-check"></i>
+          <span>Frequência</span>
+        </a>
+        <a href="#motorista" class="menu-item" data-menu="motorista">
+          <i class="fas fa-comments"></i>
+          <span>Chat Motorista</span>
+        </a>
+        <a href="#configuracoes" class="menu-item" data-menu="configuracoes">
+          <i class="fas fa-cog"></i>
+          <span>Configurações</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <button id="logout-btn" class="btn-logout">
+          <i class="fas fa-sign-out-alt"></i>
+          <span>Sair</span>
+        </button>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="top-bar">
+        <div class="top-bar-left">
+          <h2 id="page-title">Rastreamento</h2>
+        </div>
+        <div class="top-bar-right">
+          <div class="profile-widget">
+            <img id="profile-avatar" src="https://via.placeholder.com/40" alt="Perfil" class="avatar" />
+            <span id="profile-name">Seu Nome</span>
+          </div>
+        </div>
+      </header>
+
+      <div class="content-area">
+        <section id="rastreamento-section" class="dashboard-section active">
+          <div class="section-header">
+            <h1>Rastreamento em Tempo Real</h1>
+            <p>Veja onde a van está agora</p>
+          </div>
+
+          <div class="cards-grid rastreamento-grid">
+            <div class="card rastreamento-card">
+              <div class="card-body">
+                <div class="mapa-rastreamento">
+                  <i class="fas fa-map"></i>
+                  <p>Localização da van será exibida aqui</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="status-container">
+              <div class="card status-card">
+                <div class="card-header">
+                  <i class="fas fa-info-circle"></i>
+                  <h3>Status Atual</h3>
+                </div>
+                <div class="card-body status-body">
+                  <div class="status-badge status-aguardando">
+                    <i class="fas fa-hourglass-start"></i>
+                    <span id="status-texto">Aguardando saída</span>
+                  </div>
+                  <div class="status-detalhes">
+                    <div class="detalhe-item">
+                      <span class="label">Motorista:</span>
+                      <span class="value" id="motorista-nome-status">João da Silva</span>
+                    </div>
+                    <div class="detalhe-item">
+                      <span class="label">Próxima Parada:</span>
+                      <span class="value" id="proxima-parada">Rua A, 123</span>
+                    </div>
+                    <div class="detalhe-item">
+                      <span class="label">Tempo Estimado:</span>
+                      <span class="value" id="tempo-estimado">5 min</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card presenca-card">
+                <div class="card-header">
+                  <i class="fas fa-check-circle"></i>
+                  <h3>Confirmar Presença</h3>
+                </div>
+                <div class="card-body presenca-body">
+                  <p class="presenca-texto">Vou para a escola hoje?</p>
+                  <div class="toggle-presenca">
+                    <button id="btn-vai" class="btn-presenca btn-vai-sim active">
+                      <i class="fas fa-check"></i>
+                      <span>Sim, vou!</span>
+                    </button>
+                    <button id="btn-nao-vai" class="btn-presenca btn-vai-nao">
+                      <i class="fas fa-times"></i>
+                      <span>Não vou</span>
+                    </button>
+                  </div>
+                  <span class="presenca-confirmado" id="confirmacao-msg"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="frequencia-section" class="dashboard-section">
+          <div class="section-header">
+            <h1>Frequência Rápida</h1>
+            <p>Controle sua presença diária</p>
+          </div>
+
+          <div class="cards-grid">
+            <div class="card frequencia-card">
+              <div class="card-body">
+                <div class="frequencia-toggle-grande">
+                  <h2>Vou para a escola hoje?</h2>
+                  <button id="toggle-presenca-grande" class="toggle-button" data-status="sim">
+                    <div class="toggle-circle"></div>
+                  </button>
+                  <span id="toggle-label">Confirmado: SIM</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="card calendario-card">
+              <div class="card-header">
+                <i class="fas fa-calendar"></i>
+                <h3>Histórico de Presença</h3>
+              </div>
+              <div class="card-body">
+                <div class="calendario-presenca" id="calendario-presenca">
+                  <div class="mes-header">
+                    <button class="btn-mes-anterior"><i class="fas fa-chevron-left"></i></button>
+                    <span id="mes-ano">Abril 2026</span>
+                    <button class="btn-mes-proximo"><i class="fas fa-chevron-right"></i></button>
+                  </div>
+                  <div class="dias-semana">
+                    <div class="dia-semana">Seg</div>
+                    <div class="dia-semana">Ter</div>
+                    <div class="dia-semana">Qua</div>
+                    <div class="dia-semana">Qui</div>
+                    <div class="dia-semana">Sex</div>
+                    <div class="dia-semana">Sab</div>
+                    <div class="dia-semana">Dom</div>
+                  </div>
+                  <div class="dias-calendario" id="dias-calendario"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="motorista-section" class="dashboard-section">
+          <div class="section-header">
+            <h1>Chat com Motorista</h1>
+            <p>Comunique-se com seu motorista responsável</p>
+          </div>
+
+          <div class="cards-grid">
+            <div class="card chat-motorista-card">
+              <div class="card-body">
+                <div class="chat-container">
+                  <div class="chat-main-full">
+                    <div class="chat-header-motorista">
+                      <div class="motorista-info">
+                        <div class="motorista-avatar"><i class="fas fa-user-tie"></i></div>
+                        <div>
+                          <h3 id="motorista-nome-chat">João da Silva</h3>
+                          <p class="motorista-status"><i class="fas fa-circle"></i> Online</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="chat-messages" id="chat-messages-motorista">
+                      <div class="mensagem-recebida">
+                        <p>Oi! Vou passar na sua casa em 10 minutos.</p>
+                        <span class="hora">08:45</span>
+                      </div>
+                    </div>
+                    <div class="chat-input-area">
+                      <input type="text" id="chat-input-motorista" placeholder="Digite sua mensagem..." />
+                      <button id="send-msg-btn-motorista" class="btn-enviar-chat">
+                        <i class="fas fa-paper-plane"></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="configuracoes-section" class="dashboard-section">
+          <div class="section-header">
+            <h1>Configurações</h1>
+            <p>Gerencie suas informações e preferências</p>
+          </div>
+
+          <div class="cards-grid config-grid">
+            <div class="card config-card">
+              <div class="card-header">
+                <i class="fas fa-map-pin"></i>
+                <h3>Endereço de Coleta</h3>
+              </div>
+              <div class="card-body">
+                <div class="config-item">
+                  <label>Endereço Principal:</label>
+                  <p id="endereco-coleta-atual">Rua A, 123 - São Paulo, SP</p>
+                  <button class="btn-small btn-editar">Editar Endereço</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="card config-card">
+              <div class="card-header">
+                <i class="fas fa-lock"></i>
+                <h3>Segurança</h3>
+              </div>
+              <div class="card-body">
+                <div class="config-item">
+                  <button class="btn-small btn-seguranca">Alterar Senha</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="card config-card">
+              <div class="card-header">
+                <i class="fas fa-bell"></i>
+                <h3>Notificações</h3>
+              </div>
+              <div class="card-body">
+                <div class="config-checkbox">
+                  <label>
+                    <input type="checkbox" checked />
+                    Alertas de status da van
+                  </label>
+                </div>
+                <div class="config-checkbox">
+                  <label>
+                    <input type="checkbox" checked />
+                    Mensagens do motorista
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div class="card config-card">
+              <div class="card-header">
+                <i class="fas fa-user"></i>
+                <h3>Perfil</h3>
+              </div>
+              <div class="card-body">
+                <div class="config-item">
+                  <label>Nome:</label>
+                  <p id="config-nome">João Silva</p>
+                </div>
+                <div class="config-item">
+                  <label>Email:</label>
+                  <p id="config-email">joao@email.com</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <div class="container-notificacoes"></div>
+
+  <script src="../assets/js/config.js"></script>
+  <script src="../assets/js/validators.js"></script>
+  <script src="../assets/js/dashboard-aluno.js"></script>
+</body>
+</html>

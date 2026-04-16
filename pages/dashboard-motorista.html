@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard - Motorista</title>
+  <link rel="stylesheet" href="../assets/css/global.css" />
+  <link rel="stylesheet" href="../assets/css/dashboard.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <div class="dashboard-container">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <i class="fas fa-user-circle"></i>
+        <h3 id="motorista-nome">Motorista</h3>
+      </div>
+
+      <nav class="sidebar-menu">
+        <a href="#inicio" class="menu-item active" data-menu="inicio">
+          <i class="fas fa-home"></i>
+          <span>Início</span>
+        </a>
+        <a href="#alunos" class="menu-item" data-menu="alunos">
+          <i class="fas fa-users"></i>
+          <span>Lista de Alunos</span>
+        </a>
+        <a href="#rotas" class="menu-item" data-menu="rotas">
+          <i class="fas fa-map-marked-alt"></i>
+          <span>Rotas</span>
+        </a>
+        <a href="#chat" class="menu-item" data-menu="chat">
+          <i class="fas fa-comments"></i>
+          <span>Chat</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <button id="logout-btn" class="btn-logout">
+          <i class="fas fa-sign-out-alt"></i>
+          <span>Sair</span>
+        </button>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="top-bar">
+        <div class="top-bar-left">
+          <h2 id="page-title">Início</h2>
+        </div>
+        <div class="top-bar-right">
+          <div class="profile-widget">
+            <img id="profile-avatar" src="https://via.placeholder.com/40" alt="Perfil" class="avatar" />
+            <span id="profile-name">Seu Nome</span>
+          </div>
+        </div>
+      </header>
+
+      <div class="content-area">
+        <section id="inicio-section" class="dashboard-section active">
+          <div class="section-header">
+            <h1>Bem-vindo ao Dashboard</h1>
+            <p>Gerencie seu turno e alunos de forma eficiente</p>
+          </div>
+
+          <div class="cards-grid">
+            <div class="card checklist-card">
+              <div class="card-header">
+                <i class="fas fa-clipboard-check"></i>
+                <h3>Checklist do Dia</h3>
+              </div>
+              <div class="card-body">
+                <ul class="checklist-alunos" id="checklist-alunos">
+                  <li class="aluno-item">
+                    <span class="aluno-nome">João Silva</span>
+                    <div class="aluno-status">
+                      <button class="btn-status btn-confirmar" title="Vai hoje">
+                        <i class="fas fa-check"></i>
+                      </button>
+                      <button class="btn-status btn-negado" title="Não vai">
+                        <i class="fas fa-times"></i>
+                      </button>
+                    </div>
+                  </li>
+                </ul>
+              </div>
+              <div class="card-footer">
+                <span class="info-text"><strong id="confirmar-count">0</strong> confirmados</span>
+              </div>
+            </div>
+
+            <div class="card rota-card">
+              <div class="card-header">
+                <i class="fas fa-route"></i>
+                <h3>Rota Otimizada</h3>
+              </div>
+              <div class="card-body">
+                <div class="mapa-placeholder">
+                  <i class="fas fa-map"></i>
+                  <p>Mapa da rota será exibido aqui</p>
+                </div>
+                <div class="rota-info">
+                  <div class="info-item">
+                    <span class="label">Partida:</span>
+                    <span class="value" id="horario-saida">08:00</span>
+                  </div>
+                  <div class="info-item">
+                    <span class="label">Chegada:</span>
+                    <span class="value" id="horario-chegada">09:30</span>
+                  </div>
+                  <div class="info-item">
+                    <span class="label">Distância:</span>
+                    <span class="value" id="distancia-rota">12,5 km</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card chat-card">
+              <div class="card-header">
+                <i class="fas fa-comments"></i>
+                <h3>Últimas Mensagens</h3>
+              </div>
+              <div class="card-body">
+                <ul class="mensagens-list" id="mensagens-list">
+                  <li class="mensagem-item">
+                    <div class="mensagem-header">
+                      <span class="remetente-nome">Maria (Mãe)</span>
+                      <span class="timestamp">Agora</span>
+                    </div>
+                    <p class="mensagem-texto">Meu filho está com febre, vai ficar em casa hoje.</p>
+                  </li>
+                </ul>
+              </div>
+              <div class="card-footer">
+                <button class="btn-primary-small">Ver Chat Completo</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="alunos-section" class="dashboard-section">
+          <div class="section-header">
+            <h1>Lista de Alunos</h1>
+            <p>Todos os alunos inscritos nas suas rotas</p>
+          </div>
+
+          <div class="cards-grid">
+            <div class="card alunos-list-card">
+              <div class="card-body">
+                <table class="alunos-table">
+                  <thead>
+                    <tr>
+                      <th>Nome</th>
+                      <th>Telefone Responsável</th>
+                      <th>Endereço Coleta</th>
+                      <th>Status Hoje</th>
+                    </tr>
+                  </thead>
+                  <tbody id="alunos-table-body">
+                    <tr>
+                      <td>João Silva</td>
+                      <td>(11) 98765-4321</td>
+                      <td>Rua A, 123</td>
+                      <td><span class="badge badge-confirmado">Confirmado</span></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="rotas-section" class="dashboard-section">
+          <div class="section-header">
+            <h1>Minhas Rotas</h1>
+            <p>Rotas atribuídas ao seu usuário</p>
+          </div>
+
+          <div class="cards-grid">
+            <div class="card rotas-list-card">
+              <div class="card-body">
+                <div class="rotas-list" id="rotas-list">
+                  <div class="rota-item">
+                    <div class="rota-header">
+                      <h4>Rota Centro</h4>
+                      <span class="badge badge-ativa">Ativa</span>
+                    </div>
+                    <p class="rota-detalhe"><i class="fas fa-map-pin"></i> De: Rua Principal - Para: Escola Central</p>
+                    <p class="rota-detalhe"><i class="fas fa-clock"></i> 08:00 - 09:30</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="chat-section" class="dashboard-section">
+          <div class="section-header">
+            <h1>Chat</h1>
+            <p>Comunique-se com pais e responsáveis</p>
+          </div>
+
+          <div class="cards-grid">
+            <div class="card chat-full-card">
+              <div class="card-body">
+                <div class="chat-container">
+                  <div class="chat-sidebar">
+                    <div class="chat-search">
+                      <input type="text" id="chat-search" placeholder="Buscar conversas..." />
+                    </div>
+                    <ul class="chat-list" id="chat-list">
+                      <li class="chat-item active">
+                        <div class="chat-avatar"><i class="fas fa-user"></i></div>
+                        <div class="chat-info">
+                          <span class="chat-name">Maria Silva</span>
+                          <span class="chat-preview">Última mensagem aqui...</span>
+                        </div>
+                      </li>
+                    </ul>
+                  </div>
+
+                  <div class="chat-main">
+                    <div class="chat-header">
+                      <h3 id="chat-contact-name">Maria Silva</h3>
+                    </div>
+                    <div class="chat-messages" id="chat-messages">
+                      <div class="mensagem-recebida">
+                        <p>Olá, seu filho está faltando hoje?</p>
+                        <span class="hora">10:30</span>
+                      </div>
+                    </div>
+                    <div class="chat-input-area">
+                      <input type="text" id="chat-input" placeholder="Digite sua mensagem..." />
+                      <button id="send-msg-btn" class="btn-enviar-chat">
+                        <i class="fas fa-paper-plane"></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <div class="container-notificacoes"></div>
+
+  <script src="../assets/js/config.js"></script>
+  <script src="../assets/js/validators.js"></script>
+  <script src="../assets/js/dashboard-motorista.js"></script>
+</body>
+</html>

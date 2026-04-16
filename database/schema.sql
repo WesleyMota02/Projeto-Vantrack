@@ -94,3 +94,51 @@ CREATE TABLE localizacoes_gps (
 
 CREATE INDEX idx_localizacoes_veiculo_id ON localizacoes_gps(veiculo_id);
 CREATE INDEX idx_localizacoes_timestamp ON localizacoes_gps(timestamp);
+
+CREATE TABLE enderecos (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  aluno_id UUID NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
+  rota_id UUID NOT NULL REFERENCES rotas(id) ON DELETE CASCADE,
+  endereco_coleta VARCHAR(500) NOT NULL,
+  endereco_entrega VARCHAR(500) NOT NULL,
+  latitude_coleta NUMERIC(10, 8),
+  longitude_coleta NUMERIC(11, 8),
+  latitude_entrega NUMERIC(10, 8),
+  longitude_entrega NUMERIC(11, 8),
+  principal BOOLEAN DEFAULT true,
+  criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_enderecos_aluno_id ON enderecos(aluno_id);
+CREATE INDEX idx_enderecos_rota_id ON enderecos(rota_id);
+
+CREATE TABLE presenca_diaria (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  aluno_id UUID NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
+  rota_id UUID NOT NULL REFERENCES rotas(id) ON DELETE CASCADE,
+  data DATE NOT NULL,
+  vai_embarcar BOOLEAN NOT NULL DEFAULT true,
+  confirmado_em TIMESTAMP,
+  criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(aluno_id, rota_id, data)
+);
+
+CREATE INDEX idx_presenca_diaria_aluno_id ON presenca_diaria(aluno_id);
+CREATE INDEX idx_presenca_diaria_rota_id ON presenca_diaria(rota_id);
+CREATE INDEX idx_presenca_diaria_data ON presenca_diaria(data);
+
+CREATE TABLE mensagens_chat (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  remetente_id UUID NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
+  destinatario_id UUID NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
+  texto TEXT NOT NULL,
+  lido BOOLEAN DEFAULT false,
+  lido_em TIMESTAMP,
+  criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_mensagens_chat_remetente_id ON mensagens_chat(remetente_id);
+CREATE INDEX idx_mensagens_chat_destinatario_id ON mensagens_chat(destinatario_id);
+CREATE INDEX idx_mensagens_chat_criado_em ON mensagens_chat(criado_em);
