@@ -1,9 +1,12 @@
 from flask import Blueprint, request, jsonify
 from infra.usuario_repository import UsuarioRepository
+from infra.dois_fatores_repository import Dois_FatoresRepository
 from use_cases.autenticar_usuario import AutenticarUsuario, CadastrarUsuario, RecuperarSenha
+from use_cases.dois_fatores_commands import GenerarCodigoVerificacao2FA, EnviarCodigoVerificacao2FA
 from domain.usuario import UsuarioCreate, UsuarioLogin, UsuarioRecuperarSenha
 from exceptions import VantrackException
 import os
+import hashlib
 
 bp = Blueprint('auth', __name__, url_prefix='/api')
 
@@ -42,7 +45,43 @@ def login():
         autenticar_use_case = AutenticarUsuario(usuario_repo)
         
         resultado = autenticar_use_case.executar(usuario_login.email, usuario_login.senha)
-        return jsonify(resultado), 200
+        
+        # NOVO: Detecção de novo dispositivo para ativar 2FA
+        usuario_id = resultado['usuario_id']
+        user_agent = request.headers.get('User-Agent', 'unknown')
+        ip_address = request.remote_addr
+        dispositivo_hash = hashlib.sha256(f"{user_agent}:{ip_address}".encode()).hexdigest()
+        
+        # Verificar se este dispositivo já foi verificado
+        dois_fatores_repo = Dois_FatoresRepository(request.app.db)
+        codigo_ativo = dois_fatores_repo.buscar_ativo_por_usuario_e_dispositivo(usuario_id, dispositivo_hash)
+        
+        # Se não há código ativo para este dispositivo, é um novo dispositivo - requer 2FA
+        if not codigo_ativo:
+            # Gerar código 2FA
+            generar_use_case = GenerarCodigoVerificacao2FA(usuario_repo, dois_fatores_repo)
+            codigo_resultado = generar_use_case.executar(usuario_id, dispositivo_hash, 'SMS')
+            
+            # Enviar código
+            enviar_use_case = EnviarCodigoVerificacao2FA(dois_fatores_repo)
+            try:
+                enviar_use_case.executar(codigo_resultado['dois_fatores_id'])
+            except:
+                # Se falhar enviar, continua mesmo assim - usuário pode reenviar
+                pass
+            
+            # Retornar response indicando que 2FA é necessário
+            return jsonify({
+                'requer_2fa': True,
+                'dois_fatores_id': codigo_resultado['dois_fatores_id'],
+                'usuario_id': usuario_id,
+                'metodo': codigo_resultado['metodo'],
+                'telefone_mascarado': codigo_resultado['telefone_sms_mascarado'],
+                'mensagem': 'Novo dispositivo detectado. Verifique seu celular e insira o código de 6 dígitos.'
+            }), 200
+        else:
+            # Dispositivo conhecido - login normal sem 2FA
+            return jsonify(resultado), 200
     
     except VantrackException as e:
         return jsonify({'erro': str(e)}), 401

@@ -21,7 +21,35 @@ async function handleLogin(e){
     const b=this.querySelector('button[type="submit"]');b.disabled=true;b.textContent='Entrando...';
     try{
         const r=await fetchAPI('POST','/login',{email:email,senha:senha});
-        if(r&&r.token){setToken(r.token);setUser(r.usuario);mostrarNotificacao('Login OK!','sucesso',1500);setTimeout(()=>window.location.href='/pages/perfil.html',1000);}
+        if(r){
+            // Verificar se requer 2FA
+            if(r.requer_2fa && r.dois_fatores_id){
+                // Novo dispositivo - guardar dados na sessão e redirecionar para 2FA
+                const dados2FA={
+                    dois_fatores_id:r.dois_fatores_id,
+                    usuario_id:r.usuario_id,
+                    metodo:r.metodo,
+                    telefone_mascarado:r.telefone_mascarado,
+                    email_mascarado:r.email_mascarado,
+                    auth_token:r.auth_token,
+                    usuario_dados:r.usuario
+                };
+                sessionStorage.setItem('dados_2fa',JSON.stringify(dados2FA));
+                mostrarNotificacao('Novo dispositivo detectado. Aguarde...','info',1500);
+                setTimeout(()=>window.location.href='./2fa.html',1000);
+            }else if(r.token){
+                // Dispositivo conhecido - login normal
+                setToken(r.token);setUser(r.usuario);mostrarNotificacao('Login OK!','sucesso',1500);
+                setTimeout(()=>{
+                    const perfil=r.usuario.tipo_perfil;
+                    if(perfil==='motorista'){
+                        window.location.href='/pages/dashboard-motorista.html';
+                    }else{
+                        window.location.href='/pages/dashboard-aluno.html';
+                    }
+                },1000);
+            }
+        }
     }catch(e){mostrarNotificacao(e.message||'Erro login','erro');}finally{b.disabled=false;b.textContent='Entrar';}
 }
 

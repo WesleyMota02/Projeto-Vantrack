@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Verificação 2FA - VanTrack</title>
+  <link rel="stylesheet" href="../assets/css/global.css" />
+  <link rel="stylesheet" href="../assets/css/login.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    .codigo-input {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin: 30px 0;
+    }
+
+    .codigo-input input {
+      width: 50px;
+      height: 50px;
+      font-size: 24px;
+      text-align: center;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+    }
+
+    .codigo-input input:focus {
+      outline: none;
+      border-color: #0099ff;
+      box-shadow: 0 0 10px rgba(0, 153, 255, 0.3);
+    }
+
+    .codigo-input input.completo {
+      border-color: #22c55e;
+    }
+
+    .info-2fa {
+      background: #f0f7ff;
+      border-left: 4px solid #0099ff;
+      padding: 15px;
+      margin: 20px 0;
+      border-radius: 4px;
+      font-size: 14px;
+      color: #333;
+    }
+
+    .info-2fa strong {
+      color: #0099ff;
+    }
+
+    .tentativas-info {
+      text-align: center;
+      color: #666;
+      font-size: 13px;
+      margin-top: 10px;
+    }
+
+    .tentativas-info.aviso {
+      color: #ef4444;
+      font-weight: 500;
+    }
+
+    .timer-reenvio {
+      text-align: center;
+      color: #999;
+      font-size: 13px;
+      margin-top: 10px;
+    }
+
+    .btn-reenviar {
+      background: none;
+      border: none;
+      color: #0099ff;
+      cursor: pointer;
+      text-decoration: underline;
+      font-size: 14px;
+      transition: color 0.3s ease;
+    }
+
+    .btn-reenviar:hover:not(:disabled) {
+      color: #0078cc;
+    }
+
+    .btn-reenviar:disabled {
+      color: #ccc;
+      cursor: not-allowed;
+    }
+
+    .voltar-login {
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    .voltar-login a {
+      color: #0099ff;
+      text-decoration: none;
+      font-size: 14px;
+      transition: color 0.3s ease;
+    }
+
+    .voltar-login a:hover {
+      color: #0078cc;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid #f3f3f3;
+      border-top: 2px solid #0099ff;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <div class="login-box">
+      <div class="login-header">
+        <i class="fas fa-shield-alt"></i>
+        <h1>Verificação de Segurança</h1>
+        <p>Confirme sua identidade com o código de verificação</p>
+      </div>
+
+      <div class="info-2fa" id="info-2fa">
+        <strong>Novo dispositivo detectado!</strong><br />
+        Enviamos um código de 6 dígitos para seu <span id="metodo-envio">telefone</span>.
+        <br />
+        <small id="detalhes-envio" style="display: block; margin-top: 5px;"></small>
+      </div>
+
+      <form id="form-2fa" class="login-form">
+        <div class="form-group">
+          <label>Código de Verificação</label>
+          <div class="codigo-input" id="codigo-input">
+            <input type="text" maxlength="1" class="digito" inputmode="numeric" />
+            <input type="text" maxlength="1" class="digito" inputmode="numeric" />
+            <input type="text" maxlength="1" class="digito" inputmode="numeric" />
+            <input type="text" maxlength="1" class="digito" inputmode="numeric" />
+            <input type="text" maxlength="1" class="digito" inputmode="numeric" />
+            <input type="text" maxlength="1" class="digito" inputmode="numeric" />
+          </div>
+          <div class="tentativas-info" id="tentativas-info"></div>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block">
+          <span id="btn-text">Verificar Código</span>
+          <span class="spinner" id="btn-spinner" style="display: none;"></span>
+        </button>
+      </form>
+
+      <div class="timer-reenvio">
+        <p>Não recebeu o código? 
+          <button type="button" class="btn-reenviar" id="btn-reenviar" onclick="reenviarCodigo()">
+            Reenviar
+          </button>
+          <span id="timer-text" style="display: none;">em <span id="timer-segundos">60</span>s</span>
+        </p>
+      </div>
+
+      <div class="voltar-login">
+        <a href="../index.html">Voltar ao login</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="../assets/js/config.js"></script>
+  <script src="../assets/js/2fa.js"></script>
+</body>
+</html>

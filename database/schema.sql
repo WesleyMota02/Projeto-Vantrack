@@ -142,3 +142,22 @@ CREATE TABLE mensagens_chat (
 CREATE INDEX idx_mensagens_chat_remetente_id ON mensagens_chat(remetente_id);
 CREATE INDEX idx_mensagens_chat_destinatario_id ON mensagens_chat(destinatario_id);
 CREATE INDEX idx_mensagens_chat_criado_em ON mensagens_chat(criado_em);
+
+CREATE TABLE dois_fatores (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  usuario_id UUID NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
+  dispositivo_hash VARCHAR(255) NOT NULL,
+  codigo_2fa VARCHAR(6) NOT NULL,
+  metodo VARCHAR(10) NOT NULL CHECK (metodo IN ('SMS', 'EMAIL')),
+  telefone_sms VARCHAR(11),
+  email_envio VARCHAR(254),
+  verificado BOOLEAN DEFAULT false,
+  tentativas_restantes INT DEFAULT 3,
+  criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  expira_em TIMESTAMP NOT NULL,
+  verificado_em TIMESTAMP
+);
+
+CREATE INDEX idx_dois_fatores_usuario_id ON dois_fatores(usuario_id);
+CREATE INDEX idx_dois_fatores_dispositivo_hash ON dois_fatores(dispositivo_hash);
+CREATE INDEX idx_dois_fatores_expira_em ON dois_fatores(expira_em);
