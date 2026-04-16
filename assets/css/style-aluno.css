@@ -28,7 +28,7 @@ body {
     font-family: "Poppins", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
         sans-serif;
     min-height: 100vh;
-    background-color: var(--azul-fundo);
+    background: linear-gradient(180deg, #07427b, #031c3c);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -41,8 +41,8 @@ body::before {
     top: 0;
     left: 0;
     width: 100%;
-    height: 26px;               /* ajusta a altura se quiser */
-    background-color: var(--azul-faixa);
+    height: 0;
+    background-color: transparent;
     z-index: -1;
 }
 

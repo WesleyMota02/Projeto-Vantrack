@@ -49,8 +49,8 @@ body {
 
 .texto-escolha h1 {
     font-size: 1.8rem;
-    font-weight: 500;
-    color: var(--texto-principal);
+    font-weight: 600;
+    color: #07427b;
     margin-bottom: 6px;
 }
 

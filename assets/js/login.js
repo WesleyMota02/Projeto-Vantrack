@@ -1,8 +1,10 @@
 document.addEventListener('DOMContentLoaded',()=>{
     const fL=document.getElementById('form-login'), fRS=document.getElementById('form-recuperar-senha'), bTS=document.querySelector('.toggle-senha');
+    const perfil=document.getElementById('perfil');
     if(fL) fL.addEventListener('submit',handleLogin);
     if(fRS) fRS.addEventListener('submit',handleRecuperarSenha);
     if(bTS) bTS.addEventListener('click',e=>{e.preventDefault();const i=document.getElementById('senha'),ic=e.target.closest('.toggle-senha').querySelector('i');i.type=i.type==='password'?'text':'password';ic.classList.toggle('fa-eye');ic.classList.toggle('fa-eye-slash');});
+    if(perfil) perfil.addEventListener('change',()=>{if(perfil.value) perfil.classList.remove('is-placeholder'); else perfil.classList.add('is-placeholder');});
     document.querySelectorAll('input[data-validar]').forEach(i=>i.addEventListener('blur',()=>validarFormulario(i.form)));
 });
 
