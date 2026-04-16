@@ -2,6 +2,7 @@ import os
 import sys
 from flask import Flask
 from flask_cors import CORS
+from flask_socketio import SocketIO
 from dotenv import load_dotenv
 
 sys.path.insert(0, os.path.dirname(__file__))
@@ -16,6 +17,7 @@ def criar_app():
     app.config.from_object(config[env])
 
     CORS(app)
+    socketio = SocketIO(app, cors_allowed_origins='*', async_mode='threading')
 
     from database import Database
     db = Database(app.config['DATABASE_URL'])
@@ -30,6 +32,20 @@ def criar_app():
     app.register_blueprint(gps_routes.bp)
     app.register_blueprint(dashboard_routes.bp)
 
+    from presentation.sockets.realtime_handlers import RastreamentoSocket, ChatSocket
+    
+    socketio.on_connect(namespace='/rastreamento')(RastreamentoSocket.on_connect(socketio))
+    socketio.on_disconnect(namespace='/rastreamento')(RastreamentoSocket.on_disconnect())
+    socketio.on('atualizar_localizacao', namespace='/rastreamento')(RastreamentoSocket.on_atualizar_localizacao(socketio, app))
+    socketio.on('inscrever_rota', namespace='/rastreamento')(RastreamentoSocket.on_inscrever_rota(socketio))
+    socketio.on('desinscrever_rota', namespace='/rastreamento')(RastreamentoSocket.on_desinscrever_rota(socketio))
+    
+    socketio.on_connect(namespace='/chat')(ChatSocket.on_connect_chat(socketio))
+    socketio.on_disconnect(namespace='/chat')(ChatSocket.on_disconnect_chat())
+    socketio.on('enviar_mensagem', namespace='/chat')(ChatSocket.on_enviar_mensagem(socketio, app))
+    socketio.on('inscrever_conversa', namespace='/chat')(ChatSocket.on_inscrever_conversa(socketio))
+    socketio.on('marcar_como_lida', namespace='/chat')(ChatSocket.on_marcar_como_lida(socketio, app))
+
     @app.errorhandler(404)
     def nao_encontrado(e):
         return {'erro': 'Rota não encontrada'}, 404
@@ -38,8 +54,8 @@ def criar_app():
     def erro_interno(e):
         return {'erro': 'Erro interno do servidor'}, 500
 
-    return app
+    return app, socketio
 
 if __name__ == '__main__':
-    app = criar_app()
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    app, socketio = criar_app()
+    socketio.run(app, debug=True, host='0.0.0.0', port=5000)
