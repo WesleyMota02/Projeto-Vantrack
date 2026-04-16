@@ -26,12 +26,12 @@ body {
 }
 
 .logo-van {
-  width: 85px;
+  width: 110px;
   height: auto;
 }
 
 .login-header h1 {
-  font-size: 1.5rem;
+  font-size: 1.75rem;
   font-weight: 700;
   color: var(--white);
   text-align: center;
