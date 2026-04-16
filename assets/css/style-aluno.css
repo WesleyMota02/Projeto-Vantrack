@@ -88,6 +88,11 @@ body {
     border-radius: 999px;
     border: 1px solid var(--cinza-borda);
     padding: 4px 14px;
+    margin-bottom: 8px;
+}
+
+.campo i {
+    color: #9ca3af;
 }
 
 .campo span.material-symbols-outlined {
@@ -107,6 +112,17 @@ body {
 
 .campo input::placeholder {
     color: var(--cinza-ph);
+}
+
+.campo input.input-erro,
+.campo.input-erro {
+    border-color: var(--cinza-borda) !important;
+    background-color: #f6f8fb !important;
+    color: #333 !important;
+}
+
+.msg-erro {
+    display: none !important;
 }
 
 .campo-senha {

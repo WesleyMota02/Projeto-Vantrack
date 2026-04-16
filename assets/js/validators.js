@@ -14,8 +14,8 @@ function validarCoordenadas(lat, lng) { const la=parseFloat(lat), lo=parseFloat(
 function validarHorario(h) { return /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(h); }
 function validarCapacidade(c) { const cap=parseInt(c); return !isNaN(cap)&&cap>0&&cap<=100; }
 function validarAno(a) { const an=parseInt(a), anoAt=new Date().getFullYear(); return !isNaN(an)&&an>=2000&&an<=anoAt; }
-function mostrarErroFormulario(i, m) { i.classList.add('input-erro'); let me=i.parentElement.querySelector('.msg-erro'); if (!me) { me=document.createElement('span'); me.className='msg-erro'; i.parentElement.appendChild(me); } me.textContent=m; }
-function limparErroFormulario(i) { i.classList.remove('input-erro'); const me=i.parentElement.querySelector('.msg-erro'); if (me) me.remove(); }
+function mostrarErroFormulario(i, m) { i.classList.add('input-erro'); }
+function limparErroFormulario(i) { i.classList.remove('input-erro'); }
 function validarFormulario(f) {
     let v=true;
     f.querySelectorAll('input[data-validar]').forEach(i=>{
