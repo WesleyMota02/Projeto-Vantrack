@@ -15,41 +15,41 @@ body {
 
 .header {
   color: var(--white);
-  margin-bottom: 60px;
+  margin-bottom: 16px;
 }
 
 .logo-recuperar {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 15px;
-  margin-bottom: 15px;
+  gap: 12px;
+  margin-bottom: 12px;
 }
 
 .logo-recuperar h1 {
-  font-size: 2.2rem;
-  font-weight: bold;
+  font-size: 1.9rem;
+  font-weight: 500;
   line-height: 1.1;
   color: #ffffff;
 }
 
 .logo-bus-img {
-  width: 80px;
+  width: 75px;
   height: auto;
 }
 
 .header p {
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   line-height: 1.4;
-  font-weight: 300;
-  margin-top: 8px;
+  font-weight: 400;
+  margin-top: 10px;
   color: #ffffff;
 }
 
 .form-card {
   background-color: var(--white);
   border-radius: 26px;
-  padding: 26px;
+  padding: 20px 24px 18px;
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
 }
 
@@ -59,7 +59,7 @@ body {
   border: 1px solid #d9e0ea;
   border-radius: 999px;
   padding: 4px 14px;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
   background-color: #f6f8fb;
   transition: box-shadow 0.2s ease, border-color 0.2s ease;
 }
@@ -108,14 +108,32 @@ body {
 }
 
 .voltar-login {
-  margin-top: 16px;
-  font-size: 0.9rem;
+  margin-top: 6px;
+  font-size: 0.85rem;
 }
 
 .voltar-login a {
   color: #ffffff;
   text-decoration: none;
   transition: opacity 0.2s;
+}
+
+.voltar-login a:hover {
+  opacity: 0.8;
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 10px;
+  }
+
+  .logo-recuperar h1 {
+    font-size: 1.7rem;
+  }
+
+  .logo-bus-img {
+    width: 60px;
+  }
 }
 
 .voltar-login a:hover {
