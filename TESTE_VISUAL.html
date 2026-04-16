@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Credenciais de Teste - VanTrack</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .header {
+      text-align: center;
+      color: white;
+      margin-bottom: 40px;
+    }
+
+    .header h1 {
+      font-size: 2.5em;
+      margin-bottom: 10px;
+    }
+
+    .header p {
+      font-size: 1.1em;
+      opacity: 0.9;
+    }
+
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: 30px;
+      margin-bottom: 40px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 30px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      transition: transform 0.3s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+    }
+
+    .card-icon {
+      font-size: 3em;
+      margin-bottom: 15px;
+    }
+
+    .card h2 {
+      color: #333;
+      margin-bottom: 20px;
+      font-size: 1.8em;
+    }
+
+    .credential {
+      background: #f5f5f5;
+      border-left: 4px solid #667eea;
+      padding: 12px 15px;
+      margin-bottom: 12px;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+    }
+
+    .credential-label {
+      color: #666;
+      font-size: 0.9em;
+      font-weight: 600;
+    }
+
+    .credential-value {
+      color: #333;
+      font-size: 1.1em;
+      font-weight: bold;
+      margin-top: 3px;
+    }
+
+    .info-box {
+      background: #f0f7ff;
+      border-left: 4px solid #0099ff;
+      padding: 15px;
+      border-radius: 4px;
+      margin-top: 20px;
+      color: #333;
+      font-size: 0.95em;
+      line-height: 1.6;
+    }
+
+    .info-box strong {
+      color: #0099ff;
+    }
+
+    .steps {
+      background: white;
+      border-radius: 12px;
+      padding: 30px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      margin-bottom: 40px;
+    }
+
+    .steps h2 {
+      color: #333;
+      margin-bottom: 20px;
+      font-size: 1.8em;
+    }
+
+    .step {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 20px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #eee;
+    }
+
+    .step:last-child {
+      border-bottom: none;
+    }
+
+    .step-number {
+      background: #667eea;
+      color: white;
+      width: 35px;
+      height: 35px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      flex-shrink: 0;
+    }
+
+    .step-content h3 {
+      color: #333;
+      margin-bottom: 5px;
+    }
+
+    .step-content p {
+      color: #666;
+      font-size: 0.95em;
+      line-height: 1.5;
+    }
+
+    .code-block {
+      background: #2d2d2d;
+      color: #f8f8f2;
+      padding: 15px;
+      border-radius: 4px;
+      overflow-x: auto;
+      font-family: 'Courier New', monospace;
+      font-size: 0.85em;
+      margin-top: 10px;
+      line-height: 1.4;
+    }
+
+    .copy-btn {
+      background: #667eea;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.9em;
+      margin-top: 10px;
+      transition: background 0.3s ease;
+    }
+
+    .copy-btn:hover {
+      background: #764ba2;
+    }
+
+    .flow-diagram {
+      background: white;
+      border-radius: 12px;
+      padding: 30px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      margin-bottom: 40px;
+    }
+
+    .flow-diagram h2 {
+      color: #333;
+      margin-bottom: 20px;
+      font-size: 1.8em;
+    }
+
+    .flow-text {
+      background: #f5f5f5;
+      padding: 15px;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9em;
+      line-height: 1.6;
+      color: #333;
+      overflow-x: auto;
+    }
+
+    .footer {
+      text-align: center;
+      color: white;
+      padding: 20px;
+      font-size: 0.95em;
+    }
+
+    @media (max-width: 768px) {
+      .cards-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .header h1 {
+        font-size: 1.8em;
+      }
+
+      .card h2 {
+        font-size: 1.4em;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🔐 Credenciais de Teste</h1>
+      <p>VanTrack - Sistema de Rastreamento Escolar</p>
+    </div>
+
+    <div class="cards-grid">
+      <!-- Motorista Card -->
+      <div class="card">
+        <div class="card-icon">👨‍🚗</div>
+        <h2>Motorista</h2>
+        
+        <div class="credential">
+          <div class="credential-label">Email</div>
+          <div class="credential-value">motorista@teste.com</div>
+        </div>
+
+        <div class="credential">
+          <div class="credential-label">Senha</div>
+          <div class="credential-value">123456</div>
+        </div>
+
+        <div class="credential">
+          <div class="credential-label">CPF</div>
+          <div class="credential-value">12345678901</div>
+        </div>
+
+        <div class="info-box">
+          <strong>Nome:</strong> João Silva<br>
+          <strong>Telefone:</strong> 11987654321<br>
+          <strong>Cidade:</strong> São Paulo
+        </div>
+      </div>
+
+      <!-- Aluno Card -->
+      <div class="card">
+        <div class="card-icon">👨‍🎓</div>
+        <h2>Aluno</h2>
+        
+        <div class="credential">
+          <div class="credential-label">Email</div>
+          <div class="credential-value">aluno@teste.com</div>
+        </div>
+
+        <div class="credential">
+          <div class="credential-label">Senha</div>
+          <div class="credential-value">123456</div>
+        </div>
+
+        <div class="credential">
+          <div class="credential-label">CPF</div>
+          <div class="credential-value">98765432101</div>
+        </div>
+
+        <div class="info-box">
+          <strong>Nome:</strong> Maria Santos<br>
+          <strong>Telefone:</strong> 11912345678<br>
+          <strong>Cidade:</strong> São Paulo
+        </div>
+      </div>
+    </div>
+
+    <!-- Steps -->
+    <div class="steps">
+      <h2>📋 Passos para Usar</h2>
+
+      <div class="step">
+        <div class="step-number">1</div>
+        <div class="step-content">
+          <h3>Cadastre os Usuários</h3>
+          <p>Use a API de cadastro ou insira manualmente no PostgreSQL usando as credenciais acima.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-number">2</div>
+        <div class="step-content">
+          <h3>Acesse a Página de Login</h3>
+          <p>Abra o navegador e acesse a página inicial do VanTrack.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-number">3</div>
+        <div class="step-content">
+          <h3>Selecione o Tipo de Usuário</h3>
+          <p>Clique no dropdown e escolha entre "Motorista" ou "Aluno".</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-number">4</div>
+        <div class="step-content">
+          <h3>Insira Email e Senha</h3>
+          <p>Digite o email e senha fornecidos acima.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-number">5</div>
+        <div class="step-content">
+          <h3>Clique em "Entrar"</h3>
+          <p>Se for um novo dispositivo, você verá a página de 2FA pedindo um código de 6 dígitos.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-number">6</div>
+        <div class="step-content">
+          <h3>Acesse o Dashboard</h3>
+          <p>Após login bem-sucedido, você será redirecionado para o dashboard apropriado (motorista ou aluno).</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Features by Role -->
+    <div class="steps">
+      <h2>🎯 Recursos por Perfil</h2>
+
+      <div class="step">
+        <div class="step-number">👨‍🚗</div>
+        <div class="step-content">
+          <h3>Dashboard Motorista</h3>
+          <p><strong>Início:</strong> Checklist de segurança, próxima rota, mensagens recentes<br>
+             <strong>Lista de Alunos:</strong> Visualizar alunos da rota<br>
+             <strong>Rotas:</strong> Gerenciar rotas do dia<br>
+             <strong>Chat:</strong> Comunicação em tempo real com pais/responsáveis (WebSocket)</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-number">👨‍🎓</div>
+        <div class="step-content">
+          <h3>Dashboard Aluno</h3>
+          <p><strong>Rastreamento:</strong> Ver localização ao vivo do ônibus em mapa Leaflet<br>
+             <strong>Frequência:</strong> Calendário com presenças/faltas e toggle SIM/NÃO para embarcar<br>
+             <strong>Chat:</strong> Comunicação em tempo real com motorista (WebSocket)<br>
+             <strong>Configurações:</strong> Endereços de coleta/entrega</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2FA Info -->
+    <div class="steps">
+      <h2>🔐 Autenticação de Dois Fatores (2FA)</h2>
+      <p style="margin-bottom: 20px; color: #666;">Quando você fizer login de um <strong>novo dispositivo</strong>, o sistema detectará e pedirá um código de verificação:</p>
+
+      <div class="step">
+        <div class="step-number">1</div>
+        <div class="step-content">
+          <h3>Detecção de Novo Dispositivo</h3>
+          <p>O sistema analisa User-Agent e IP para identificar dispositivos novos.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-number">2</div>
+        <div class="step-content">
+          <h3>Geração de Código</h3>
+          <p>Um código de 6 dígitos é gerado e válido por 5 minutos.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-number">3</div>
+        <div class="step-content">
+          <h3>Envio de Código</h3>
+          <p>O código é enviado via <strong>SMS (Twilio)</strong> ou <strong>Email (SMTP)</strong>.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-number">4</div>
+        <div class="step-content">
+          <h3>Verificação</h3>
+          <p>Digite o código na página 2FA. Máximo 3 tentativas erradas.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-number">5</div>
+        <div class="step-content">
+          <h3>Dispositivo Marcado</h3>
+          <p>Após verificação bem-sucedida, o dispositivo é marcado como confiável. Próximos logins não precisam de 2FA.</p>
+        </div>
+      </div>
+
+      <div class="info-box">
+        <strong>⚠️ Para testar 2FA:</strong> Limpe o localStorage ou use um navegador diferente/incógnito para simular um novo dispositivo.
+      </div>
+    </div>
+
+    <div class="footer">
+      <p>✅ Projeto VanTrack está pronto para testes! | 🚀 Versão 1.0.0</p>
+    </div>
+  </div>
+</body>
+</html>
