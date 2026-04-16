@@ -1,16 +1,21 @@
 document.addEventListener('DOMContentLoaded',()=>{
     const fL=document.getElementById('form-login'), fRS=document.getElementById('form-recuperar-senha'), bTS=document.querySelector('.toggle-senha');
-    const perfil=document.getElementById('perfil');
+    const dH=document.querySelector('.dropdown-header'), dL=document.getElementById('dropdown-perfil-list'), dI=document.querySelectorAll('.dropdown-item');
     if(fL) fL.addEventListener('submit',handleLogin);
     if(fRS) fRS.addEventListener('submit',handleRecuperarSenha);
     if(bTS) bTS.addEventListener('click',e=>{e.preventDefault();const i=document.getElementById('senha'),ic=e.target.closest('.toggle-senha').querySelector('i');i.type=i.type==='password'?'text':'password';ic.classList.toggle('fa-eye');ic.classList.toggle('fa-eye-slash');});
-    if(perfil) perfil.addEventListener('change',()=>{if(perfil.value) perfil.classList.remove('is-placeholder'); else perfil.classList.add('is-placeholder');});
+    if(dH){
+        dH.addEventListener('click',e=>{e.stopPropagation();dL.style.display=dL.style.display==='none'?'block':'none';dH.classList.toggle('open');});
+        dI.forEach(item=>item.addEventListener('click',e=>{e.stopPropagation();const v=item.getAttribute('data-value');document.getElementById('perfil').value=v;document.getElementById('perfil-display').textContent=item.textContent;dL.style.display='none';dH.classList.remove('open');dH.classList.remove('is-placeholder');dI.forEach(it=>it.classList.remove('selected'));item.classList.add('selected');}));
+        document.addEventListener('click',()=>{dL.style.display='none';dH.classList.remove('open');});
+    }
     document.querySelectorAll('input[data-validar]').forEach(i=>i.addEventListener('blur',()=>validarFormulario(i.form)));
 });
 
 async function handleLogin(e){
     e.preventDefault();
     if(!validarFormulario(this)){mostrarNotificacao('Corrija os erros','erro');return;}
+    if(!document.getElementById('perfil').value){mostrarNotificacao('Selecione um perfil','erro');return;}
     const b=this.querySelector('button[type="submit"]');b.disabled=true;b.textContent='Entrando...';
     try{
         const r=await fetchAPI('POST','/login',{email:document.getElementById('email').value.trim(),senha:document.getElementById('senha').value});

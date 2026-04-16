@@ -93,21 +93,70 @@ body {
   font-family: inherit;
 }
 
-.input-com-icone select {
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
+.dropdown-perfil {
+  position: relative;
+}
+
+.dropdown-header {
   cursor: pointer;
+  user-select: none;
 }
 
-.input-com-icone select option {
-  background-color: var(--white);
+.perfil-display {
+  flex: 1;
   color: var(--text-primary);
-  padding: 8px;
+  font-size: 16px;
 }
 
-.input-com-icone select.is-placeholder {
+.dropdown-header.is-placeholder .perfil-display {
   color: #999;
+}
+
+.dropdown-icon {
+  color: #0099ff;
+  font-size: 14px;
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+
+.dropdown-header.open .dropdown-icon {
+  transform: rotate(180deg);
+}
+
+.dropdown-list {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background-color: var(--white);
+  border: 1px solid var(--border-gray);
+  border-radius: 8px;
+  list-style: none;
+  margin: 0;
+  padding: 8px 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+  min-width: 100%;
+}
+
+.dropdown-item {
+  padding: 12px 14px;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dropdown-item:hover {
+  background-color: #f1f3f5;
+}
+
+.dropdown-item.selected {
+  background-color: #e3f2fd;
+  color: #0099ff;
+  font-weight: 500;
 }
 
 .toggle-senha {

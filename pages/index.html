@@ -37,13 +37,17 @@
                     </div>
                 </div>
                 <div class="form-group">
-                    <div class="input-com-icone">
-                        <i class="fas fa-user-circle"></i>
-                        <select id="perfil" name="perfil" class="is-placeholder" required>
-                            <option value="">Selecione seu perfil</option>
-                            <option value="aluno">Aluno</option>
-                            <option value="motorista">Motorista</option>
-                        </select>
+                    <div class="dropdown-perfil">
+                        <div class="dropdown-header input-com-icone">
+                            <i class="fas fa-user-circle"></i>
+                            <span id="perfil-display" class="perfil-display">Selecione seu perfil</span>
+                            <i class="fas fa-chevron-down dropdown-icon"></i>
+                        </div>
+                        <ul class="dropdown-list" id="dropdown-perfil-list" style="display: none;">
+                            <li class="dropdown-item" data-value="aluno">Aluno</li>
+                            <li class="dropdown-item" data-value="motorista">Motorista</li>
+                        </ul>
+                        <input type="hidden" id="perfil" name="perfil" value="">
                     </div>
                 </div>
                 <div class="form-group checkbox-group">
