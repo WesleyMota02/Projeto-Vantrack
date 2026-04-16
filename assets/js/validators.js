@@ -1,93 +1,40 @@
-const Validators = {
-  email: (email) => {
-    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return regex.test(email) && email.length <= 254;
-  },
-
-  cpf: (cpf) => {
-    const cleaned = cpf.replace(/\D/g, '');
-    if (cleaned.length !== 11) return false;
-    if (/^(\d)\1{10}$/.test(cleaned)) return false;
-
-    let sum = 0;
-    let remainder;
-
-    for (let i = 1; i <= 9; i++) {
-      sum += parseInt(cleaned.substring(i - 1, i)) * (11 - i);
-    }
-    remainder = (sum * 10) % 11;
-    if (remainder === 10 || remainder === 11) remainder = 0;
-    if (remainder !== parseInt(cleaned.substring(9, 10))) return false;
-
-    sum = 0;
-    for (let i = 1; i <= 10; i++) {
-      sum += parseInt(cleaned.substring(i - 1, i)) * (12 - i);
-    }
-    remainder = (sum * 10) % 11;
-    if (remainder === 10 || remainder === 11) remainder = 0;
-    if (remainder !== parseInt(cleaned.substring(10, 11))) return false;
-
-    return true;
-  },
-
-  phone: (phone) => {
-    const cleaned = phone.replace(/\D/g, '');
-    return cleaned.length === 11 && cleaned.startsWith('11');
-  },
-
-  password: (password) => {
-    if (password.length < 8) return false;
-    if (!/[A-Z]/.test(password)) return false;
-    if (!/[a-z]/.test(password)) return false;
-    if (!/[0-9]/.test(password)) return false;
-    return true;
-  },
-
-  passwordStrength: (password) => {
-    let strength = 0;
-    if (password.length >= 8) strength++;
-    if (password.length >= 12) strength++;
-    if (/[a-z]/.test(password)) strength++;
-    if (/[A-Z]/.test(password)) strength++;
-    if (/[0-9]/.test(password)) strength++;
-    if (/[!@#$%^&*]/.test(password)) strength++;
-    return strength;
-  },
-
-  name: (name) => {
-    const trimmed = name.trim();
-    return trimmed.length >= 2 && trimmed.length <= 100 && /^[a-zA-ZáéíóúàâêôãõçÁÉÍÓÚÀÂÊÔÃÕÇ\s]+$/.test(trimmed);
-  },
-
-  city: (city) => {
-    const trimmed = city.trim();
-    return trimmed.length >= 2 && trimmed.length <= 100;
-  },
-
-  required: (value) => {
-    return value && value.trim().length > 0;
-  },
-
-  isEmpty: (value) => {
-    return !value || value.trim().length === 0;
-  },
-
-  formatCPF: (cpf) => {
-    const cleaned = cpf.replace(/\D/g, '');
-    if (cleaned.length !== 11) return cpf;
-    return cleaned.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
-  },
-
-  formatPhone: (phone) => {
-    const cleaned = phone.replace(/\D/g, '');
-    if (cleaned.length !== 11) return phone;
-    return cleaned.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
-  },
-
-  sanitizeInput: (input) => {
-    return input
-      .trim()
-      .replace(/[<>]/g, '')
-      .substring(0, 255);
-  }
-};
+function validarEmail(e) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e); }
+function validarCPF(c) { return c.replace(/\D/g,'').length === 11; }
+function validarTelefone(t) { return /^[0-9]{10,11}$/.test(t.replace(/\D/g,'')); }
+function validarSenha(s) {
+    if (s.length < 8) return { valido: false, erro: 'Mínimo 8 caracteres' };
+    if (!/[A-Z]/.test(s)) return { valido: false, erro: 'Precisa de maiúscula' };
+    if (!/[a-z]/.test(s)) return { valido: false, erro: 'Precisa de minúscula' };
+    if (!/[0-9]/.test(s)) return { valido: false, erro: 'Precisa de número' };
+    return { valido: true };
+}
+function validarNome(n) { return n.trim().length >= 3 && /^[a-zA-Zá-ý\s]+$/.test(n); }
+function validarCidade(c) { return c.trim().length >= 3 && /^[a-zA-Zá-ý\s]+$/.test(c); }
+function validarCoordenadas(lat, lng) { const la=parseFloat(lat), lo=parseFloat(lng); return !isNaN(la)&&!isNaN(lo)&&la>=-90&&la<=90&&lo>=-180&&lo<=180; }
+function validarHorario(h) { return /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(h); }
+function validarCapacidade(c) { const cap=parseInt(c); return !isNaN(cap)&&cap>0&&cap<=100; }
+function validarAno(a) { const an=parseInt(a), anoAt=new Date().getFullYear(); return !isNaN(an)&&an>=2000&&an<=anoAt; }
+function mostrarErroFormulario(i, m) { i.classList.add('input-erro'); let me=i.parentElement.querySelector('.msg-erro'); if (!me) { me=document.createElement('span'); me.className='msg-erro'; i.parentElement.appendChild(me); } me.textContent=m; }
+function limparErroFormulario(i) { i.classList.remove('input-erro'); const me=i.parentElement.querySelector('.msg-erro'); if (me) me.remove(); }
+function validarFormulario(f) {
+    let v=true;
+    f.querySelectorAll('input[data-validar]').forEach(i=>{
+        const t=i.getAttribute('data-validar'); let e='';
+        if (i.hasAttribute('required')&&!i.value.trim()) e='Obrigatório';
+        else if (i.value.trim()) {
+            switch(t) {
+                case 'email': if(!validarEmail(i.value)) e='Email inválido'; break;
+                case 'cpf': if(!validarCPF(i.value)) e='CPF inválido'; break;
+                case 'telefone': if(!validarTelefone(i.value)) e='Telefone inválido'; break;
+                case 'senha': const rs=validarSenha(i.value); if(!rs.valido) e=rs.erro; break;
+                case 'nome': if(!validarNome(i.value)) e='Nome inválido'; break;
+                case 'cidade': if(!validarCidade(i.value)) e='Cidade inválida'; break;
+                case 'horario': if(!validarHorario(i.value)) e='Formato HH:MM'; break;
+                case 'capacidade': if(!validarCapacidade(i.value)) e='1-100'; break;
+                case 'ano': if(!validarAno(i.value)) e='2000-atual'; break;
+            }
+        }
+        if (e) { mostrarErroFormulario(i, e); v=false; } else limparErroFormulario(i);
+    });
+    return v;
+}

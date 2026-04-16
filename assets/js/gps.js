@@ -1,103 +1,75 @@
-mapboxgl.accessToken = "SUA_MAPBOX_ACCESS_TOKEN_AQUI";
+requireAuth();
+if(!temPerfil('motorista')){mostrarNotificacao('Acesso apenas para motoristas','erro');setTimeout(()=>logout(),1500);}
 
-const GPSMap = {
-  map: null,
-  markerVan: null,
-  markerCircle: null,
-  rotaSimulada: [
-    [-46.6333, -23.5505],
-    [-46.6352, -23.5512],
-    [-46.6370, -23.5520],
-    [-46.6385, -23.5531],
-    [-46.6400, -23.5538]
-  ],
-  indice: 0,
-  intervalId: null,
+let map=null,marker=null,watchId=null;
+const mapContainer='mapa';
 
-  init: () => {
-    if (!mapboxgl.accessToken || mapboxgl.accessToken === "SUA_MAPBOX_ACCESS_TOKEN_AQUI") {
-      UIFeedback.showError("Configure seu Mapbox Access Token em assets/js/gps.js");
-      return;
+document.addEventListener('DOMContentLoaded',()=>{
+    initMapa();
+    document.getElementById('btn-registrar')?.addEventListener('click',registrarLocalizacao);
+    document.getElementById('btn-atualizar')?.addEventListener('click',carregarHistorico);
+    carregarHistorico();
+});
+
+function initMapa(){
+    if(!document.getElementById(mapContainer))return;
+    const defLat=-23.5505,defLng=-46.6333,defZoom=14;
+    if(typeof mapboxgl!=='undefined'){
+        mapboxgl.accessToken='YOUR_MAPBOX_TOKEN';
+        map=new mapboxgl.Map({container:mapContainer,style:'mapbox://styles/mapbox/streets-v12',center:[defLng,defLat],zoom:defZoom});
+        marker=new mapboxgl.Marker({color:'#ff0000'}).setLngLat([defLng,defLat]).addTo(map);
+    }else{
+        console.log('Mapbox não carregado, usando fallback');
+        document.getElementById(mapContainer).innerHTML='<p>Mapa indisponível. Usando coordenadas numéricas.</p>';
     }
+}
 
-    try {
-      GPSMap.map = new mapboxgl.Map({
-        container: "map",
-        style: "mapbox://styles/mapbox/streets-v12",
-        center: [-46.6333, -23.5505],
-        zoom: 14
-      });
+function registrarLocalizacao(){
+    if(!navigator.geolocation){mostrarNotificacao('Geolocalização não disponível','erro');return;}
+    const btn=document.getElementById('btn-registrar');btn.disabled=true;btn.textContent='Obtendo localização...';
+    navigator.geolocation.getCurrentPosition(async pos=>{
+        const lat=pos.coords.latitude,lng=pos.coords.longitude;
+        if(!validarCoordenadas(lat,lng)){mostrarNotificacao('Coordenadas inválidas','erro');btn.disabled=false;btn.textContent='Registrar Localização';return;}
+        try{
+            const r=await fetchAPI('POST','/gps/registrar',{latitude:lat,longitude:lng,veiculo_id:document.getElementById('veiculo-id')?.value||1});
+            if(r){mostrarNotificacao('Localização registrada!','sucesso');atualizarMapa(lat,lng);carregarHistorico();}
+        }catch(e){mostrarNotificacao(e.message||'Erro ao registrar','erro');}finally{btn.disabled=false;btn.textContent='Registrar Localização';}
+    },e=>{mostrarNotificacao('Erro ao obter localização: '+e.message,'erro');btn.disabled=false;btn.textContent='Registrar Localização';});
+}
 
-      GPSMap.map.on("load", GPSMap.setupMarkers);
-      GPSMap.map.on("error", (e) => {
-        console.error("Erro ao carregar mapa:", e);
-        UIFeedback.showError("Erro ao carregar o mapa. Verifique sua chave do Mapbox.");
-      });
-    } catch (error) {
-      console.error("Erro ao inicializar mapa:", error);
-      UIFeedback.showError("Erro ao inicializar o mapa.");
+function atualizarMapa(lat,lng){
+    if(map&&marker){
+        const pt=[lng,lat];
+        marker.setLngLat(pt);
+        map.easeTo({center:pt,duration:500});
     }
-  },
+}
 
-  setupMarkers: () => {
-    GPSMap.map.addControl(new mapboxgl.NavigationControl(), "top-right");
-
-    const popupCircle = document.createElement("div");
-    popupCircle.style.width = "40px";
-    popupCircle.style.height = "40px";
-    popupCircle.style.borderRadius = "50%";
-    popupCircle.style.border = "2px solid rgba(127, 63, 191, 0.3)";
-    popupCircle.style.backgroundColor = "rgba(127, 63, 191, 0.15)";
-
-    GPSMap.markerVan = new mapboxgl.Marker({ color: "#7f3fbf" })
-      .setLngLat(GPSMap.rotaSimulada[0])
-      .addTo(GPSMap.map);
-
-    GPSMap.markerCircle = new mapboxgl.Marker({ element: popupCircle })
-      .setLngLat(GPSMap.rotaSimulada[0])
-      .addTo(GPSMap.map);
-
-    GPSMap.startTracking();
-    GPSMap.setupSearch();
-  },
-
-  startTracking: () => {
-    GPSMap.intervalId = setInterval(() => {
-      GPSMap.indice = (GPSMap.indice + 1) % GPSMap.rotaSimulada.length;
-      const novaPosicao = GPSMap.rotaSimulada[GPSMap.indice];
-
-      GPSMap.markerVan.setLngLat(novaPosicao);
-      GPSMap.markerCircle.setLngLat(novaPosicao);
-
-      GPSMap.map.easeTo({
-        center: novaPosicao,
-        duration: 1000
-      });
-    }, 2000);
-  },
-
-  setupSearch: () => {
-    const campoPesquisa = document.getElementById("campo-pesquisa");
-    if (!campoPesquisa) return;
-
-    campoPesquisa.addEventListener("keydown", (event) => {
-      if (event.key === "Enter") {
-        event.preventDefault();
-        const query = Validators.sanitizeInput(campoPesquisa.value);
-        if (query.length > 2) {
-          console.log("Pesquisar por:", query);
+async function carregarHistorico(){
+    try{
+        const vId=document.getElementById('veiculo-id')?.value||1;
+        const r=await fetchAPI('GET',`/gps/${vId}/historico`);
+        if(r&&r.localizacoes){
+            const tb=document.getElementById('tabela-historico')||criarTabelaHistorico();
+            const tbody=tb.querySelector('tbody');
+            tbody.innerHTML='';
+            r.localizacoes.slice(0,50).forEach(loc=>{
+                const tr=document.createElement('tr');
+                tr.innerHTML=`<td>${formatarData(loc.timestamp)}</td><td>${loc.latitude}</td><td>${loc.longitude}</td><td>${formatarHora(loc.timestamp)}</td>`;
+                tbody.appendChild(tr);
+            });
         }
-      }
-    });
-  },
+    }catch(e){console.error('Erro histórico:',e);}
+}
 
-  stop: () => {
-    if (GPSMap.intervalId) {
-      clearInterval(GPSMap.intervalId);
-      GPSMap.intervalId = null;
-    }
-  }
-};
+function criarTabelaHistorico(){
+    const c=document.getElementById('container-historico')||document.body;
+    const t=document.createElement('table');
+    t.id='tabela-historico';
+    t.innerHTML='<thead><tr><th>Data</th><th>Latitude</th><th>Longitude</th><th>Hora</th></tr></thead><tbody></tbody>';
+    c.appendChild(t);
+    return t;
+}
 
 document.addEventListener("DOMContentLoaded", GPSMap.init);
 window.addEventListener("beforeunload", GPSMap.stop);

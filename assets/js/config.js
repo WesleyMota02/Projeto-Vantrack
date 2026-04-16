@@ -1,46 +1,34 @@
-const Config = {
-  API_BASE_URL: 'http://localhost:3000/api',
-
-  ENDPOINTS: {
-    ALUNOS_CADASTRAR: '/alunos/cadastrar',
-    MOTORISTAS_CADASTRAR: '/motoristas/cadastrar',
-    LOGIN: '/login',
-    RECUPERAR_SENHA: '/recuperar-senha',
-    VEICULOS_CADASTRAR: '/veiculos/cadastrar'
-  },
-
-  VALIDATION_RULES: {
-    NAME_MIN: 2,
-    NAME_MAX: 100,
-    PASSWORD_MIN: 8,
-    CPF_LENGTH: 11,
-    PHONE_LENGTH: 11,
-    EMAIL_MAX: 254,
-    CITY_MIN: 2,
-    CITY_MAX: 100
-  },
-
-  UI: {
-    TOAST_DURATION: 5000,
-    ANIMATION_DURATION: 300,
-    DEBOUNCE_DELAY: 500
-  },
-
-  STORAGE_KEYS: {
-    USER_LOGGED_IN: 'usuarioLogado',
-    REMEMBER_ME: 'lembrarMe',
-    SESSION_TOKEN: 'sessionToken'
-  },
-
-  ERROR_MESSAGES: {
-    NETWORK_ERROR: 'Erro de conexão com o servidor. Verifique sua internet.',
-    INVALID_EMAIL: 'E-mail inválido.',
-    INVALID_CPF: 'CPF inválido.',
-    INVALID_PHONE: 'Telefone inválido. Use formato brasileiro (11 dígitos).',
-    WEAK_PASSWORD: 'Senha fraca. Use maiúsculas, minúsculas, números e símbolos.',
-    REQUIRED_FIELD: 'Campo obrigatório.',
-    PASSWORD_MISMATCH: 'As senhas não coincidem.',
-    DUPLICATE_EMAIL: 'E-mail já cadastrado.',
-    DUPLICATE_CPF: 'CPF já cadastrado.'
-  }
+const CONFIG = {
+    API_URL: 'http://localhost:5000/api',
+    TOKEN_KEY: 'vantrack_token',
+    USER_KEY: 'vantrack_user'
 };
+
+function setToken(token) { localStorage.setItem(CONFIG.TOKEN_KEY, token); }
+function getToken() { return localStorage.getItem(CONFIG.TOKEN_KEY); }
+function setUser(user) { localStorage.setItem(CONFIG.USER_KEY, JSON.stringify(user)); }
+function getUser() { const u = localStorage.getItem(CONFIG.USER_KEY); return u ? JSON.parse(u) : null; }
+function clearAuth() { localStorage.removeItem(CONFIG.TOKEN_KEY); localStorage.removeItem(CONFIG.USER_KEY); }
+function isAuthenticated() { return getToken() !== null && getUser() !== null; }
+function requireAuth() { if (!isAuthenticated()) window.location.href = '/pages/index.html'; }
+function temPerfil(perfil) { const u = getUser(); return u && u.tipo_perfil === perfil; }
+function logout() { clearAuth(); window.location.href = '/pages/index.html'; }
+
+async function fetchAPI(method, endpoint, data = null) {
+    const options = { method, headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` } };
+    if (data && (method === 'POST' || method === 'PUT')) options.body = JSON.stringify(data);
+    const res = await fetch(`${CONFIG.API_URL}${endpoint}`, options);
+    if (res.status === 401) { clearAuth(); window.location.href = '/pages/index.html'; return null; }
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.erro || `Erro ${res.status}`);
+    return result;
+}
+
+function mostrarNotificacao(msg, tipo = 'info', dur = 3000) {
+    const c = document.getElementById('notificacoes') || (() => { const x = document.createElement('div'); x.id = 'notificacoes'; x.className = 'container-notificacoes'; document.body.insertBefore(x, document.body.firstChild); return x; })();
+    const n = document.createElement('div');
+    n.className = `notificacao notificacao-${tipo}`;
+    n.innerHTML = `<span>${{sucesso:'✓',erro:'✕',aviso:'⚠',info:'ℹ'}[tipo]||'•'}</span><span>${msg}</span>`;
+    c.appendChild(n);
+    if (dur > 0) setTimeout(() => n.remove(), dur);
+}
