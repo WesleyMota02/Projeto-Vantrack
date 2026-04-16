@@ -1,115 +1,67 @@
-from flask import Blueprint, request, jsonify, current_app
+from flask import Blueprint, request, jsonify
 from infra.inscricao_repository import InscricaoRepository
-from infra.usuario_repository import UsuarioRepository
 from infra.rota_repository import RotaRepository
+from infra.usuario_repository import UsuarioRepository
 from use_cases.inscricao_commands import CriarInscricao, CancelarInscricao
-from middleware.autenticacao import AutenticacaoMiddleware
-from exceptions import DadosInvalidosException, UsuarioNaoEncontradoException
+from domain.inscricao import InscricaoCreate
+from middleware.autenticacao import requer_token, requer_perfil
+from exceptions import VantrackException
 
-bp = Blueprint('inscricoes', __name__, url_prefix='/api')
-auth = AutenticacaoMiddleware()
+bp = Blueprint('inscricao', __name__, url_prefix='/api/inscricoes')
 
-@bp.route('/alunos/<aluno_id>/inscricoes', methods=['POST'])
-@auth.requer_token
-@auth.requer_perfil('aluno')
-def criar_inscricao(aluno_id):
+@bp.route('', methods=['POST'])
+@requer_token
+@requer_perfil('aluno')
+def criar_inscricao():
     try:
-        if request.usuario_id != aluno_id:
-            return jsonify({'sucesso': False, 'erro': 'Você pode se inscrever apenas em rotas para si mesmo'}), 403
-
-        dados = request.get_json() or request.form.to_dict()
-        rota_id = dados.get('rota_id')
-
-        if not rota_id:
-            return jsonify({'sucesso': False, 'erro': 'ID da rota é obrigatório'}), 400
-
-        usuario_repo = UsuarioRepository(current_app.db)
-        rota_repo = RotaRepository(current_app.db)
-        inscricao_repo = InscricaoRepository(current_app.db)
-        usecase = CriarInscricao(inscricao_repo, usuario_repo, rota_repo)
-        inscricao = usecase.executar(aluno_id, rota_id)
-
-        return jsonify({
-            'sucesso': True,
-            'mensagem': 'Inscrição realizada com sucesso',
-            'inscricao': inscricao.to_dict()
-        }), 201
-
-    except DadosInvalidosException as e:
-        return jsonify({'sucesso': False, 'erro': str(e)}), 400
-    except UsuarioNaoEncontradoException as e:
-        return jsonify({'sucesso': False, 'erro': str(e)}), 404
+        dados = request.get_json()
+        inscricao_repo = InscricaoRepository(request.app.db)
+        rota_repo = RotaRepository(request.app.db)
+        usuario_repo = UsuarioRepository(request.app.db)
+        
+        criar_use_case = CriarInscricao(inscricao_repo, rota_repo, usuario_repo)
+        
+        inscricao_create = InscricaoCreate(**dados)
+        resultado = criar_use_case.executar(inscricao_create)
+        return jsonify(resultado), 201
+    except VantrackException as e:
+        return jsonify({'erro': str(e)}), 400
     except Exception as e:
-        return jsonify({'sucesso': False, 'erro': 'Erro ao criar inscrição'}), 500
+        return jsonify({'erro': 'Erro ao criar inscrição'}), 500
 
-@bp.route('/alunos/<aluno_id>/inscricoes', methods=['GET'])
-@auth.requer_token
-def listar_inscricoes_aluno(aluno_id):
+@bp.route('/<int:inscricao_id>', methods=['GET'])
+@requer_token
+def obter_inscricao(inscricao_id):
     try:
-        if request.usuario_id != aluno_id:
-            return jsonify({'sucesso': False, 'erro': 'Você só pode visualizar suas próprias inscrições'}), 403
-
-        inscricao_repo = InscricaoRepository(current_app.db)
-        inscricoes = inscricao_repo.obter_por_aluno(aluno_id)
-
-        return jsonify({
-            'sucesso': True,
-            'total': len(inscricoes),
-            'inscricoes': [i.to_dict() for i in inscricoes]
-        }), 200
-
+        inscricao_repo = InscricaoRepository(request.app.db)
+        inscricao = inscricao_repo.buscar_por_id(inscricao_id)
+        if not inscricao:
+            return jsonify({'erro': 'Inscrição não encontrada'}), 404
+        return jsonify(inscricao), 200
     except Exception as e:
-        return jsonify({'sucesso': False, 'erro': 'Erro ao listar inscrições'}), 500
+        return jsonify({'erro': 'Erro ao obter inscrição'}), 500
 
-@bp.route('/rotas/<rota_id>/inscricoes', methods=['GET'])
-@auth.requer_token
-def listar_inscricoes_rota(rota_id):
+@bp.route('', methods=['GET'])
+@requer_token
+def listar_inscricoes():
     try:
-        inscricao_repo = InscricaoRepository(current_app.db)
-        rota_repo = RotaRepository(current_app.db)
-
-        rota = rota_repo.obter_por_id(rota_id)
-        if not rota:
-            return jsonify({'sucesso': False, 'erro': 'Rota não encontrada'}), 404
-
-        if request.usuario_id != str(rota.motorista_id):
-            return jsonify({'sucesso': False, 'erro': 'Você só pode visualizar inscrições de suas próprias rotas'}), 403
-
-        inscricoes = inscricao_repo.obter_por_rota(rota_id)
-
-        return jsonify({
-            'sucesso': True,
-            'total': len(inscricoes),
-            'capacidade_disponivel': rota.capacidade_maxima - len(inscricoes),
-            'inscricoes': [i.to_dict() for i in inscricoes]
-        }), 200
-
+        inscricao_repo = InscricaoRepository(request.app.db)
+        inscricoes = inscricao_repo.listar_todas()
+        return jsonify(inscricoes), 200
     except Exception as e:
-        return jsonify({'sucesso': False, 'erro': 'Erro ao listar inscrições'}), 500
+        return jsonify({'erro': 'Erro ao listar inscrições'}), 500
 
-@bp.route('/inscricoes/<inscricao_id>', methods=['DELETE'])
-@auth.requer_token
-@auth.requer_perfil('aluno')
+@bp.route('/<int:inscricao_id>/cancelar', methods=['POST'])
+@requer_token
+@requer_perfil('aluno')
 def cancelar_inscricao(inscricao_id):
     try:
-        inscricao_repo = InscricaoRepository(current_app.db)
-        inscricao = inscricao_repo.obter_por_id(inscricao_id)
-
-        if not inscricao:
-            return jsonify({'sucesso': False, 'erro': 'Inscrição não encontrada'}), 404
-
-        if request.usuario_id != str(inscricao.aluno_id):
-            return jsonify({'sucesso': False, 'erro': 'Você só pode cancelar suas próprias inscrições'}), 403
-
-        usecase = CancelarInscricao(inscricao_repo)
-        usecase.executar(inscricao_id)
-
-        return jsonify({
-            'sucesso': True,
-            'mensagem': 'Inscrição cancelada com sucesso'
-        }), 200
-
-    except DadosInvalidosException as e:
-        return jsonify({'sucesso': False, 'erro': str(e)}), 400
+        inscricao_repo = InscricaoRepository(request.app.db)
+        cancelar_use_case = CancelarInscricao(inscricao_repo)
+        
+        resultado = cancelar_use_case.executar(inscricao_id)
+        return jsonify(resultado), 200
+    except VantrackException as e:
+        return jsonify({'erro': str(e)}), 400
     except Exception as e:
-        return jsonify({'sucesso': False, 'erro': 'Erro ao cancelar inscrição'}), 500
+        return jsonify({'erro': 'Erro ao cancelar inscrição'}), 500

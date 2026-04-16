@@ -1,155 +1,138 @@
 import pytest
-from domain.validadores import ValidadorUsuario, RegistroCadastroRequest
-from exceptions import DadosInvalidosException
+from use_cases.validators import (
+    validar_email, validar_cpf, validar_telefone, validar_senha,
+    validar_nome, validar_cidade, validar_tipo_perfil, validar_horario,
+    validar_coordenadas
+)
 
-class TestValidadorEmail:
-    
-    def test_email_valido(self):
-        assert ValidadorUsuario.validar_email('usuario@example.com') is True
-        assert ValidadorUsuario.validar_email('user.name@domain.co.uk') is True
-    
-    def test_email_invalido(self):
-        assert ValidadorUsuario.validar_email('usuario@') is False
-        assert ValidadorUsuario.validar_email('usuario') is False
-        assert ValidadorUsuario.validar_email('') is False
-        assert ValidadorUsuario.validar_email('@example.com') is False
+class TestValidadores:
+    @pytest.mark.unit
+    def test_validar_email_valido(self):
+        assert validar_email('usuario@email.com') == True
+        assert validar_email('teste.usuario@empresa.co.br') == True
 
-class TestValidadorCPF:
-    
-    def test_cpf_valido(self):
-        assert ValidadorUsuario.validar_cpf('11144477735') is True
-    
-    def test_cpf_invalido_sequencia_repetida(self):
-        assert ValidadorUsuario.validar_cpf('00000000000') is False
-        assert ValidadorUsuario.validar_cpf('11111111111') is False
-    
-    def test_cpf_invalido_tamanho(self):
-        assert ValidadorUsuario.validar_cpf('123') is False
-        assert ValidadorUsuario.validar_cpf('123456789012') is False
-    
-    def test_cpf_invalido_formato(self):
-        assert ValidadorUsuario.validar_cpf('abc.def.ghi-jk') is False
+    @pytest.mark.unit
+    def test_validar_email_invalido(self):
+        with pytest.raises(ValueError):
+            validar_email('email_invalido')
+        with pytest.raises(ValueError):
+            validar_email('@email.com')
+        with pytest.raises(ValueError):
+            validar_email('usuario@')
 
-class TestValidadorTelefone:
-    
-    def test_telefone_valido(self):
-        assert ValidadorUsuario.validar_telefone('11987654321') is True
-    
-    def test_telefone_invalido(self):
-        assert ValidadorUsuario.validar_telefone('123') is False
-        assert ValidadorUsuario.validar_telefone('') is False
-        assert ValidadorUsuario.validar_telefone('21987654321') is False
+    @pytest.mark.unit
+    def test_validar_cpf_valido(self):
+        assert validar_cpf('12345678901') == True
+        assert validar_cpf('123.456.789-01') == True
 
-class TestValidadorSenha:
-    
-    def test_senha_valida(self):
-        assert ValidadorUsuario.validar_senha('Senha123') is True
-        assert ValidadorUsuario.validar_senha('MyPassword2024') is True
-    
-    def test_senha_muito_curta(self):
-        assert ValidadorUsuario.validar_senha('Abc1') is False
-    
-    def test_senha_sem_maiuscula(self):
-        assert ValidadorUsuario.validar_senha('senha123') is False
-    
-    def test_senha_sem_minuscula(self):
-        assert ValidadorUsuario.validar_senha('SENHA123') is False
-    
-    def test_senha_sem_numero(self):
-        assert ValidadorUsuario.validar_senha('SenhaAbcd') is False
+    @pytest.mark.unit
+    def test_validar_cpf_invalido(self):
+        with pytest.raises(ValueError):
+            validar_cpf('1234567890')
+        with pytest.raises(ValueError):
+            validar_cpf('123456789abc')
 
-class TestValidadorNome:
-    
-    def test_nome_valido(self):
-        assert ValidadorUsuario.validar_nome('João Silva') is True
-        assert ValidadorUsuario.validar_nome('Maria') is True
-    
-    def test_nome_muito_curto(self):
-        assert ValidadorUsuario.validar_nome('J') is False
-    
-    def test_nome_muito_longo(self):
-        assert ValidadorUsuario.validar_nome('A' * 101) is False
-    
-    def test_nome_com_numeros(self):
-        assert ValidadorUsuario.validar_nome('João123') is False
+    @pytest.mark.unit
+    def test_validar_telefone_valido(self):
+        assert validar_telefone('11999999999') == True
+        assert validar_telefone('(11) 99999-9999') == True
+        assert validar_telefone('11 99999-9999') == True
 
-class TestValidadorCidade:
-    
-    def test_cidade_valida(self):
-        assert ValidadorUsuario.validar_cidade('São Paulo') is True
-        assert ValidadorUsuario.validar_cidade('Rio de Janeiro') is True
-    
-    def test_cidade_muito_curta(self):
-        assert ValidadorUsuario.validar_cidade('A') is False
+    @pytest.mark.unit
+    def test_validar_telefone_invalido(self):
+        with pytest.raises(ValueError):
+            validar_telefone('1199')
+        with pytest.raises(ValueError):
+            validar_telefone('119999999999999')
 
-class TestValidadorTipoPerfil:
-    
-    def test_tipo_perfil_valido(self):
-        assert ValidadorUsuario.validar_tipo_perfil('aluno') is True
-        assert ValidadorUsuario.validar_tipo_perfil('motorista') is True
-    
-    def test_tipo_perfil_invalido(self):
-        assert ValidadorUsuario.validar_tipo_perfil('admin') is False
-        assert ValidadorUsuario.validar_tipo_perfil('user') is False
+    @pytest.mark.unit
+    def test_validar_senha_valida(self):
+        assert validar_senha('Senha123!') == True
+        assert validar_senha('OutraSenha@2024') == True
 
-class TestRegistroCadastroRequest:
-    
-    def test_validar_cadastro_completo(self):
-        dados = {
-            'nome': 'João',
-            'sobrenome': 'Silva',
-            'cpf': '11144477735',
-            'email': 'joao@example.com',
-            'telefone': '11987654321',
-            'cidade': 'São Paulo',
-            'senha': 'Senha123',
-            'tipo_perfil': 'aluno'
-        }
-        req = RegistroCadastroRequest(dados)
-        valido, erros = req.validar()
-        assert valido is True or valido is False
-    
-    def test_validar_cadastro_email_vazio(self):
-        dados = {
-            'nome': 'João',
-            'sobrenome': 'Silva',
-            'cpf': '11144477735',
-            'email': '',
-            'telefone': '11987654321',
-            'cidade': 'São Paulo',
-            'senha': 'Senha123'
-        }
-        req = RegistroCadastroRequest(dados)
-        valido, erros = req.validar()
-        assert valido is False
-        assert 'email' in erros
-    
-    def test_validar_cadastro_cpf_invalido(self):
-        dados = {
-            'nome': 'João',
-            'sobrenome': 'Silva',
-            'cpf': '00000000000',
-            'email': 'joao@example.com',
-            'telefone': '11987654321',
-            'cidade': 'São Paulo',
-            'senha': 'Senha123'
-        }
-        req = RegistroCadastroRequest(dados)
-        valido, erros = req.validar()
-        assert valido is False
-        assert 'cpf' in erros
-    
-    def test_validar_cadastro_senha_fraca(self):
-        dados = {
-            'nome': 'João',
-            'sobrenome': 'Silva',
-            'cpf': '11144477735',
-            'email': 'joao@example.com',
-            'telefone': '11987654321',
-            'cidade': 'São Paulo',
-            'senha': '123'
-        }
-        req = RegistroCadastroRequest(dados)
-        valido, erros = req.validar()
-        assert valido is False
-        assert 'senha' in erros
+    @pytest.mark.unit
+    def test_validar_senha_muito_curta(self):
+        with pytest.raises(ValueError):
+            validar_senha('Abc1!')
+
+    @pytest.mark.unit
+    def test_validar_senha_sem_maiuscula(self):
+        with pytest.raises(ValueError):
+            validar_senha('senha123!')
+
+    @pytest.mark.unit
+    def test_validar_senha_sem_minuscula(self):
+        with pytest.raises(ValueError):
+            validar_senha('SENHA123!')
+
+    @pytest.mark.unit
+    def test_validar_senha_sem_numero(self):
+        with pytest.raises(ValueError):
+            validar_senha('SenhaAbcd!')
+
+    @pytest.mark.unit
+    def test_validar_nome_valido(self):
+        assert validar_nome('João Silva') == True
+        assert validar_nome('Maria') == True
+
+    @pytest.mark.unit
+    def test_validar_nome_invalido(self):
+        with pytest.raises(ValueError):
+            validar_nome('Jo')
+        with pytest.raises(ValueError):
+            validar_nome('João123')
+        with pytest.raises(ValueError):
+            validar_nome('João@Silva')
+
+    @pytest.mark.unit
+    def test_validar_cidade_valida(self):
+        assert validar_cidade('São Paulo') == True
+        assert validar_cidade('Rio') == True
+
+    @pytest.mark.unit
+    def test_validar_cidade_invalida(self):
+        with pytest.raises(ValueError):
+            validar_cidade('SP')
+        with pytest.raises(ValueError):
+            validar_cidade('São Paulo 123')
+
+    @pytest.mark.unit
+    def test_validar_tipo_perfil_valido(self):
+        assert validar_tipo_perfil('aluno') == True
+        assert validar_tipo_perfil('motorista') == True
+
+    @pytest.mark.unit
+    def test_validar_tipo_perfil_invalido(self):
+        with pytest.raises(ValueError):
+            validar_tipo_perfil('admin')
+        with pytest.raises(ValueError):
+            validar_tipo_perfil('usuario')
+
+    @pytest.mark.unit
+    def test_validar_horario_valido(self):
+        assert validar_horario('08:00') == True
+        assert validar_horario('23:59') == True
+
+    @pytest.mark.unit
+    def test_validar_horario_invalido(self):
+        with pytest.raises(ValueError):
+            validar_horario('25:00')
+        with pytest.raises(ValueError):
+            validar_horario('08-00')
+        with pytest.raises(ValueError):
+            validar_horario('800')
+
+    @pytest.mark.unit
+    def test_validar_coordenadas_validas(self):
+        assert validar_coordenadas(-23.5505, -46.6333) == True
+        assert validar_coordenadas(0, 0) == True
+        assert validar_coordenadas(-90, 180) == True
+
+    @pytest.mark.unit
+    def test_validar_coordenadas_invalidas(self):
+        with pytest.raises(ValueError):
+            validar_coordenadas(91, -46.6333)
+        with pytest.raises(ValueError):
+            validar_coordenadas(-23.5505, 181)
+        with pytest.raises(ValueError):
+            validar_coordenadas(-100, -46.6333)

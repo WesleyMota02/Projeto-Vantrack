@@ -1,72 +1,52 @@
-from typing import Optional, List
-from domain.rota import Rota
-from infra.rota_repository_interface import IRotaRepository
-from database import Database
-
-class RotaRepository(IRotaRepository):
-
-    def __init__(self, db: Database):
+class RotaRepository:
+    def __init__(self, db):
         self.db = db
 
-    def criar(self, rota: Rota) -> Rota:
+    def criar(self, rota):
         query = """
-            INSERT INTO rotas (motorista_id, veiculo_id, nome, origem, destino, horario_partida, capacidade_maxima)
-            VALUES (%s, %s, %s, %s, %s, %s, %s)
-            RETURNING id, criado_em, atualizado_em
+            INSERT INTO rotas (nome, origem, destino, horario_partida, capacidade_maxima, motorista_id, veiculo_id, ativa, criado_em)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, NOW())
+            RETURNING *
         """
-        params = (
-            str(rota.motorista_id),
-            str(rota.veiculo_id) if rota.veiculo_id else None,
-            rota.nome,
-            rota.origem,
-            rota.destino,
-            rota.horario_partida,
-            rota.capacidade_maxima
-        )
-        result = self.db.execute_single(query, params)
-        if result:
-            rota.id = result['id']
-            rota.criado_em = result['criado_em']
-            rota.atualizado_em = result['atualizado_em']
-        return rota
+        params = (rota.nome, rota.origem, rota.destino, rota.horario_partida, 
+                  rota.capacidade_maxima, rota.motorista_id, rota.veiculo_id, True)
+        return self.db.execute_query_one(query, params)
 
-    def obter_por_id(self, rota_id: str) -> Optional[Rota]:
+    def buscar_por_id(self, rota_id):
         query = "SELECT * FROM rotas WHERE id = %s"
-        result = self.db.execute_single(query, (rota_id,))
-        return Rota.from_dict(result) if result else None
+        return self.db.execute_query_one(query, (rota_id,))
 
-    def obter_por_motorista(self, motorista_id: str) -> List[Rota]:
-        query = "SELECT * FROM rotas WHERE motorista_id = %s AND ativa = true ORDER BY horario_partida ASC"
-        results = self.db.execute_query(query, (motorista_id,))
-        return [Rota.from_dict(row) for row in results]
+    def listar_por_motorista(self, motorista_id):
+        query = "SELECT * FROM rotas WHERE motorista_id = %s AND ativa = TRUE"
+        return self.db.execute_query(query, (motorista_id,), fetch=True)
 
-    def obter_por_veiculo(self, veiculo_id: str) -> List[Rota]:
-        query = "SELECT * FROM rotas WHERE veiculo_id = %s AND ativa = true ORDER BY horario_partida ASC"
-        results = self.db.execute_query(query, (veiculo_id,))
-        return [Rota.from_dict(row) for row in results]
+    def listar_ativas(self):
+        query = "SELECT * FROM rotas WHERE ativa = TRUE"
+        return self.db.execute_query(query, fetch=True)
 
-    def listar_ativas(self) -> List[Rota]:
-        query = "SELECT * FROM rotas WHERE ativa = true ORDER BY horario_partida ASC"
-        results = self.db.execute_query(query)
-        return [Rota.from_dict(row) for row in results]
+    def listar_todas(self):
+        query = "SELECT * FROM rotas"
+        return self.db.execute_query(query, fetch=True)
 
-    def atualizar(self, rota_id: str, dados: dict) -> Optional[Rota]:
+    def atualizar(self, rota_id, dados):
         campos = []
-        valores = []
+        params = []
         for chave, valor in dados.items():
-            if chave not in ['id', 'motorista_id', 'criado_em']:
+            if valor is not None:
                 campos.append(f"{chave} = %s")
-                valores.append(valor)
-
+                params.append(valor)
+        
         if not campos:
-            return self.obter_por_id(rota_id)
+            return None
+        
+        params.append(rota_id)
+        query = f"UPDATE rotas SET {', '.join(campos)}, atualizado_em = NOW() WHERE id = %s RETURNING *"
+        return self.db.execute_query_one(query, params)
 
-        valores.append(rota_id)
-        query = f"UPDATE rotas SET {', '.join(campos)}, atualizado_em = CURRENT_TIMESTAMP WHERE id = %s RETURNING *"
-        result = self.db.execute_single(query, tuple(valores))
-        return Rota.from_dict(result) if result else None
+    def deletar(self, rota_id):
+        query = "UPDATE rotas SET ativa = FALSE, atualizado_em = NOW() WHERE id = %s"
+        self.db.execute_query(query, (rota_id,))
 
-    def deletar(self, rota_id: str) -> bool:
-        query = "UPDATE rotas SET ativa = false WHERE id = %s"
-        rowcount = self.db.execute_update(query, (rota_id,))
-        return rowcount > 0
+    def desativar(self, rota_id):
+        query = "UPDATE rotas SET ativa = FALSE WHERE id = %s RETURNING *"
+        return self.db.execute_query_one(query, (rota_id,))

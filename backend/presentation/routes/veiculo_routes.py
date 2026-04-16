@@ -1,131 +1,78 @@
-from flask import Blueprint, request, jsonify, current_app
+from flask import Blueprint, request, jsonify
 from infra.veiculo_repository import VeiculoRepository
-from infra.usuario_repository import UsuarioRepository
 from use_cases.veiculo_commands import CriarVeiculo, AtualizarVeiculo, DeletarVeiculo
-from use_cases.usuario_queries import ObterUsuario
-from middleware.autenticacao import AutenticacaoMiddleware
-from presentation.dtos import UsuarioResponseDTO
-from exceptions import (
-    DadosInvalidosException, UsuarioNaoEncontradoException
-)
+from domain.veiculo import VeiculoCreate
+from middleware.autenticacao import requer_token, requer_perfil
+from exceptions import VantrackException
 
-bp = Blueprint('veiculos', __name__, url_prefix='/api')
-auth = AutenticacaoMiddleware()
+bp = Blueprint('veiculo', __name__, url_prefix='/api/veiculos')
 
-@bp.route('/motoristas/<motorista_id>/veiculos', methods=['POST'])
-@auth.requer_token
-@auth.requer_perfil('motorista')
-def criar_veiculo(motorista_id):
+@bp.route('', methods=['POST'])
+@requer_token
+@requer_perfil('motorista')
+def criar_veiculo():
     try:
-        if request.usuario_id != motorista_id:
-            return jsonify({'sucesso': False, 'erro': 'Você pode criar veículos apenas para si mesmo'}), 403
-
-        dados = request.get_json() or request.form.to_dict()
-
-        usuario_repo = UsuarioRepository(current_app.db)
-        veiculo_repo = VeiculoRepository(current_app.db)
-        usecase = CriarVeiculo(veiculo_repo, usuario_repo)
-        veiculo = usecase.executar(motorista_id, dados)
-
-        return jsonify({
-            'sucesso': True,
-            'mensagem': 'Veículo criado com sucesso',
-            'veiculo': veiculo.to_dict()
-        }), 201
-
-    except DadosInvalidosException as e:
-        return jsonify({'sucesso': False, 'erro': str(e)}), 400
-    except UsuarioNaoEncontradoException as e:
-        return jsonify({'sucesso': False, 'erro': str(e)}), 404
+        dados = request.get_json()
+        veiculo_repo = VeiculoRepository(request.app.db)
+        criar_use_case = CriarVeiculo(veiculo_repo)
+        
+        veiculo_create = VeiculoCreate(**dados)
+        resultado = criar_use_case.executar(veiculo_create)
+        return jsonify(resultado), 201
+    except VantrackException as e:
+        return jsonify({'erro': str(e)}), 400
     except Exception as e:
-        return jsonify({'sucesso': False, 'erro': 'Erro ao criar veículo'}), 500
+        return jsonify({'erro': 'Erro ao criar veículo'}), 500
 
-@bp.route('/motoristas/<motorista_id>/veiculos', methods=['GET'])
-@auth.requer_token
-def listar_veiculos_motorista(motorista_id):
-    try:
-        veiculo_repo = VeiculoRepository(current_app.db)
-        veiculos = veiculo_repo.obter_por_motorista(motorista_id)
-
-        return jsonify({
-            'sucesso': True,
-            'total': len(veiculos),
-            'veiculos': [v.to_dict() for v in veiculos]
-        }), 200
-
-    except Exception as e:
-        return jsonify({'sucesso': False, 'erro': 'Erro ao listar veículos'}), 500
-
-@bp.route('/veiculos/<veiculo_id>', methods=['GET'])
-@auth.requer_token
+@bp.route('/<int:veiculo_id>', methods=['GET'])
+@requer_token
 def obter_veiculo(veiculo_id):
     try:
-        veiculo_repo = VeiculoRepository(current_app.db)
-        veiculo = veiculo_repo.obter_por_id(veiculo_id)
-
+        veiculo_repo = VeiculoRepository(request.app.db)
+        veiculo = veiculo_repo.buscar_por_id(veiculo_id)
         if not veiculo:
-            return jsonify({'sucesso': False, 'erro': 'Veículo não encontrado'}), 404
-
-        return jsonify({
-            'sucesso': True,
-            'veiculo': veiculo.to_dict()
-        }), 200
-
+            return jsonify({'erro': 'Veículo não encontrado'}), 404
+        return jsonify(veiculo), 200
     except Exception as e:
-        return jsonify({'sucesso': False, 'erro': 'Erro ao obter veículo'}), 500
+        return jsonify({'erro': 'Erro ao obter veículo'}), 500
 
-@bp.route('/veiculos/<veiculo_id>', methods=['PUT'])
-@auth.requer_token
-@auth.requer_perfil('motorista')
+@bp.route('', methods=['GET'])
+@requer_token
+def listar_veiculos():
+    try:
+        veiculo_repo = VeiculoRepository(request.app.db)
+        veiculos = veiculo_repo.listar_todos()
+        return jsonify(veiculos), 200
+    except Exception as e:
+        return jsonify({'erro': 'Erro ao listar veículos'}), 500
+
+@bp.route('/<int:veiculo_id>', methods=['PUT'])
+@requer_token
+@requer_perfil('motorista')
 def atualizar_veiculo(veiculo_id):
     try:
-        veiculo_repo = VeiculoRepository(current_app.db)
-        veiculo = veiculo_repo.obter_por_id(veiculo_id)
-
-        if not veiculo:
-            return jsonify({'sucesso': False, 'erro': 'Veículo não encontrado'}), 404
-
-        if request.usuario_id != str(veiculo.motorista_id):
-            return jsonify({'sucesso': False, 'erro': 'Você só pode atualizar seus próprios veículos'}), 403
-
-        dados = request.get_json() or request.form.to_dict()
-        usecase = AtualizarVeiculo(veiculo_repo)
-        veiculo_atualizado = usecase.executar(veiculo_id, dados)
-
-        return jsonify({
-            'sucesso': True,
-            'mensagem': 'Veículo atualizado com sucesso',
-            'veiculo': veiculo_atualizado.to_dict()
-        }), 200
-
-    except DadosInvalidosException as e:
-        return jsonify({'sucesso': False, 'erro': str(e)}), 400
+        dados = request.get_json()
+        veiculo_repo = VeiculoRepository(request.app.db)
+        atualizar_use_case = AtualizarVeiculo(veiculo_repo)
+        
+        resultado = atualizar_use_case.executar(veiculo_id, dados)
+        return jsonify(resultado), 200
+    except VantrackException as e:
+        return jsonify({'erro': str(e)}), 400
     except Exception as e:
-        return jsonify({'sucesso': False, 'erro': 'Erro ao atualizar veículo'}), 500
+        return jsonify({'erro': 'Erro ao atualizar veículo'}), 500
 
-@bp.route('/veiculos/<veiculo_id>', methods=['DELETE'])
-@auth.requer_token
-@auth.requer_perfil('motorista')
+@bp.route('/<int:veiculo_id>', methods=['DELETE'])
+@requer_token
+@requer_perfil('motorista')
 def deletar_veiculo(veiculo_id):
     try:
-        veiculo_repo = VeiculoRepository(current_app.db)
-        veiculo = veiculo_repo.obter_por_id(veiculo_id)
-
-        if not veiculo:
-            return jsonify({'sucesso': False, 'erro': 'Veículo não encontrado'}), 404
-
-        if request.usuario_id != str(veiculo.motorista_id):
-            return jsonify({'sucesso': False, 'erro': 'Você só pode deletar seus próprios veículos'}), 403
-
-        usecase = DeletarVeiculo(veiculo_repo)
-        usecase.executar(veiculo_id)
-
-        return jsonify({
-            'sucesso': True,
-            'mensagem': 'Veículo deletado com sucesso'
-        }), 200
-
-    except DadosInvalidosException as e:
-        return jsonify({'sucesso': False, 'erro': str(e)}), 400
+        veiculo_repo = VeiculoRepository(request.app.db)
+        deletar_use_case = DeletarVeiculo(veiculo_repo)
+        
+        resultado = deletar_use_case.executar(veiculo_id)
+        return jsonify(resultado), 200
+    except VantrackException as e:
+        return jsonify({'erro': str(e)}), 400
     except Exception as e:
-        return jsonify({'sucesso': False, 'erro': 'Erro ao deletar veículo'}), 500
+        return jsonify({'erro': 'Erro ao deletar veículo'}), 500

@@ -1,158 +1,113 @@
 import pytest
-from unittest.mock import Mock
-from uuid import uuid4
+from exceptions import RotaNaoEncontrada, DadosInvalidos
 from use_cases.rota_commands import CriarRota, AtualizarRota, DeletarRota
-from exceptions import DadosInvalidosException, UsuarioNaoEncontradoException
-from tests.factories import UsuarioFactory, RotaFactory
+from domain.rota import RotaCreate
 
 class TestCriarRota:
-    
-    def test_criar_rota_sucesso(self):
-        motorista = UsuarioFactory.criar_motorista()
-        usuario_repo = Mock()
-        usuario_repo.obter_por_id.return_value = motorista
+    @pytest.mark.unit
+    def test_criar_rota_com_sucesso(self, mocker):
+        rota_repo = mocker.MagicMock()
+        veiculo_repo = mocker.MagicMock()
+        usuario_repo = mocker.MagicMock()
         
-        rota_repo = Mock()
-        rota_repo.criar.return_value = RotaFactory.criar_rota(motorista.id)
+        usuario_repo.buscar_por_id.return_value = {'id': 1, 'tipo_perfil': 'motorista'}
+        veiculo_repo.buscar_por_id.return_value = {'id': 1, 'capacidade': 50}
+        rota_repo.criar.return_value = {'id': 1, 'nome': 'Rota 1', 'origem': 'SP', 'destino': 'Campinas'}
         
-        usecase = CriarRota(rota_repo, usuario_repo)
-        dados = {
-            'nome': 'Rota Centro-Norte',
-            'origem': 'Escola Centro',
-            'destino': 'Bairro Norte',
-            'horario_partida': '07:30',
-            'capacidade_maxima': 50
-        }
+        criar_use_case = CriarRota(rota_repo, veiculo_repo, usuario_repo)
+        rota = RotaCreate(nome='Rota 1', origem='SP', destino='Campinas', horario_partida='08:00',
+                         capacidade_maxima=50, motorista_id=1, veiculo_id=1)
+        resultado = criar_use_case.executar(rota)
         
-        rota = usecase.executar(str(motorista.id), dados)
+        assert resultado['nome'] == 'Rota 1'
+
+    @pytest.mark.unit
+    def test_criar_rota_origem_destino_iguais(self, mocker):
+        rota_repo = mocker.MagicMock()
+        veiculo_repo = mocker.MagicMock()
+        usuario_repo = mocker.MagicMock()
         
-        assert rota is not None
-        assert rota.nome == 'Rota Centro-Norte'
-        rota_repo.criar.assert_called_once()
-    
-    def test_criar_rota_motorista_nao_existe(self):
-        usuario_repo = Mock()
-        usuario_repo.obter_por_id.return_value = None
+        criar_use_case = CriarRota(rota_repo, veiculo_repo, usuario_repo)
         
-        rota_repo = Mock()
-        usecase = CriarRota(rota_repo, usuario_repo)
+        with pytest.raises(DadosInvalidos):
+            RotaCreate(nome='Rota 1', origem='SP', destino='SP', horario_partida='08:00',
+                      capacidade_maxima=50, motorista_id=1, veiculo_id=1)
+
+    @pytest.mark.unit
+    def test_criar_rota_motorista_invalido(self, mocker):
+        rota_repo = mocker.MagicMock()
+        veiculo_repo = mocker.MagicMock()
+        usuario_repo = mocker.MagicMock()
         
-        dados = {
-            'nome': 'Rota',
-            'origem': 'A',
-            'destino': 'B',
-            'horario_partida': '07:30',
-            'capacidade_maxima': 50
-        }
+        usuario_repo.buscar_por_id.return_value = None
         
-        with pytest.raises(UsuarioNaoEncontradoException):
-            usecase.executar(str(uuid4()), dados)
-    
-    def test_criar_rota_origem_igual_destino(self):
-        motorista = UsuarioFactory.criar_motorista()
-        usuario_repo = Mock()
-        usuario_repo.obter_por_id.return_value = motorista
+        criar_use_case = CriarRota(rota_repo, veiculo_repo, usuario_repo)
+        rota = RotaCreate(nome='Rota 1', origem='SP', destino='Campinas', horario_partida='08:00',
+                         capacidade_maxima=50, motorista_id=999, veiculo_id=1)
         
-        rota_repo = Mock()
-        usecase = CriarRota(rota_repo, usuario_repo)
+        with pytest.raises(DadosInvalidos):
+            criar_use_case.executar(rota)
+
+    @pytest.mark.unit
+    def test_criar_rota_capacidade_excede_veiculo(self, mocker):
+        rota_repo = mocker.MagicMock()
+        veiculo_repo = mocker.MagicMock()
+        usuario_repo = mocker.MagicMock()
         
-        dados = {
-            'nome': 'Rota',
-            'origem': 'São Paulo',
-            'destino': 'São Paulo',
-            'horario_partida': '07:30',
-            'capacidade_maxima': 50
-        }
+        usuario_repo.buscar_por_id.return_value = {'id': 1, 'tipo_perfil': 'motorista'}
+        veiculo_repo.buscar_por_id.return_value = {'id': 1, 'capacidade': 30}
         
-        with pytest.raises(DadosInvalidosException):
-            usecase.executar(str(motorista.id), dados)
-    
-    def test_criar_rota_horario_invalido(self):
-        motorista = UsuarioFactory.criar_motorista()
-        usuario_repo = Mock()
-        usuario_repo.obter_por_id.return_value = motorista
+        criar_use_case = CriarRota(rota_repo, veiculo_repo, usuario_repo)
+        rota = RotaCreate(nome='Rota 1', origem='SP', destino='Campinas', horario_partida='08:00',
+                         capacidade_maxima=50, motorista_id=1, veiculo_id=1)
         
-        rota_repo = Mock()
-        usecase = CriarRota(rota_repo, usuario_repo)
-        
-        dados = {
-            'nome': 'Rota',
-            'origem': 'A',
-            'destino': 'B',
-            'horario_partida': '25:70',
-            'capacidade_maxima': 50
-        }
-        
-        with pytest.raises(DadosInvalidosException):
-            usecase.executar(str(motorista.id), dados)
-    
-    def test_criar_rota_nome_muito_curto(self):
-        motorista = UsuarioFactory.criar_motorista()
-        usuario_repo = Mock()
-        usuario_repo.obter_por_id.return_value = motorista
-        
-        rota_repo = Mock()
-        usecase = CriarRota(rota_repo, usuario_repo)
-        
-        dados = {
-            'nome': 'AB',
-            'origem': 'A',
-            'destino': 'B',
-            'horario_partida': '07:30',
-            'capacidade_maxima': 50
-        }
-        
-        with pytest.raises(DadosInvalidosException):
-            usecase.executar(str(motorista.id), dados)
-    
-    def test_validar_horario_valido(self):
-        assert CriarRota._validar_horario('00:00') is True
-        assert CriarRota._validar_horario('12:30') is True
-        assert CriarRota._validar_horario('23:59') is True
-    
-    def test_validar_horario_invalido(self):
-        assert CriarRota._validar_horario('25:00') is False
-        assert CriarRota._validar_horario('12:60') is False
-        assert CriarRota._validar_horario('invalid') is False
-        assert CriarRota._validar_horario('') is False
+        with pytest.raises(DadosInvalidos):
+            criar_use_case.executar(rota)
 
 class TestAtualizarRota:
-    
-    def test_atualizar_rota_sucesso(self):
-        rota = RotaFactory.criar_rota()
-        rota_repo = Mock()
-        rota_repo.obter_por_id.return_value = rota
-        rota_atualizada = RotaFactory.criar_rota(rota.motorista_id)
-        rota_atualizada.horario_partida = '08:00'
-        rota_repo.atualizar.return_value = rota_atualizada
+    @pytest.mark.unit
+    def test_atualizar_rota_com_sucesso(self, mocker):
+        rota_repo = mocker.MagicMock()
+        veiculo_repo = mocker.MagicMock()
         
-        usecase = AtualizarRota(rota_repo)
-        dados = {'horario_partida': '08:00'}
+        rota_repo.buscar_por_id.return_value = {'id': 1, 'origem': 'SP', 'destino': 'Campinas', 'capacidade_maxima': 50}
+        rota_repo.atualizar.return_value = {'id': 1, 'nome': 'Rota Atualizada'}
         
-        resultado = usecase.executar(str(rota.id), dados)
+        atualizar_use_case = AtualizarRota(rota_repo, veiculo_repo)
+        resultado = atualizar_use_case.executar(1, {'nome': 'Rota Atualizada'})
         
-        assert resultado is not None
-        rota_repo.atualizar.assert_called_once()
-    
-    def test_atualizar_rota_nao_existe(self):
-        rota_repo = Mock()
-        rota_repo.obter_por_id.return_value = None
+        assert resultado['nome'] == 'Rota Atualizada'
+
+    @pytest.mark.unit
+    def test_atualizar_rota_nao_encontrada(self, mocker):
+        rota_repo = mocker.MagicMock()
+        veiculo_repo = mocker.MagicMock()
         
-        usecase = AtualizarRota(rota_repo)
+        rota_repo.buscar_por_id.return_value = None
         
-        with pytest.raises(DadosInvalidosException):
-            usecase.executar(str(uuid4()), {})
+        atualizar_use_case = AtualizarRota(rota_repo, veiculo_repo)
+        
+        with pytest.raises(RotaNaoEncontrada):
+            atualizar_use_case.executar(999, {'nome': 'Nova Rota'})
 
 class TestDeletarRota:
-    
-    def test_deletar_rota_sucesso(self):
-        rota = RotaFactory.criar_rota()
-        rota_repo = Mock()
-        rota_repo.obter_por_id.return_value = rota
-        rota_repo.deletar.return_value = True
+    @pytest.mark.unit
+    def test_deletar_rota_com_sucesso(self, mocker):
+        rota_repo = mocker.MagicMock()
+        rota_repo.buscar_por_id.return_value = {'id': 1, 'nome': 'Rota 1'}
         
-        usecase = DeletarRota(rota_repo)
-        resultado = usecase.executar(str(rota.id))
+        deletar_use_case = DeletarRota(rota_repo)
+        resultado = deletar_use_case.executar(1)
         
-        assert resultado is True
-        rota_repo.deletar.assert_called_once()
+        assert 'mensagem' in resultado
+        rota_repo.desativar.assert_called_once_with(1)
+
+    @pytest.mark.unit
+    def test_deletar_rota_nao_encontrada(self, mocker):
+        rota_repo = mocker.MagicMock()
+        rota_repo.buscar_por_id.return_value = None
+        
+        deletar_use_case = DeletarRota(rota_repo)
+        
+        with pytest.raises(RotaNaoEncontrada):
+            deletar_use_case.executar(999)

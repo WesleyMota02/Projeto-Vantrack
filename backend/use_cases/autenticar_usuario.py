@@ -1,45 +1,90 @@
-import os
-import jwt
-from datetime import datetime, timedelta
 import bcrypt
-from infra.usuario_repository import UsuarioRepository
-from exceptions import EmailNaoEncontradoException, SenhaInvalidaException, ErroGeracaoTokenException, DadosInvalidosException
+import jwt
+import os
+from datetime import datetime, timedelta
+from exceptions import SenhaInvalida, UsuarioNaoEncontrado, EmailJaCadastrado, CPFJaCadastrado
+from domain.usuario import UsuarioCreate, Usuario
 
 class AutenticarUsuario:
+    def __init__(self, usuario_repository):
+        self.usuario_repository = usuario_repository
 
-    def __init__(self, repo: UsuarioRepository):
-        self.repo = repo
-        self.jwt_secret = os.getenv('JWT_SECRET', 'jwt-secret-key-change-in-prod')
-        self.jwt_expiry = int(os.getenv('JWT_EXPIRY', 86400))
-
-    def executar(self, email: str, senha: str, tipo_perfil: str) -> tuple[dict, str]:
-        if not email or not senha:
-            raise DadosInvalidosException("E-mail e senha são obrigatórios")
-
-        if tipo_perfil not in ['aluno', 'motorista']:
-            raise DadosInvalidosException("Tipo de perfil inválido")
-
-        usuario = self.repo.obter_por_email(email)
+    def executar(self, email, senha):
+        usuario = self.usuario_repository.buscar_por_email(email)
         if not usuario:
-            raise EmailNaoEncontradoException(email)
-
-        if usuario.tipo_perfil != tipo_perfil:
-            raise DadosInvalidosException("Tipo de perfil não corresponde ao usuário")
-
-        if not bcrypt.checkpw(senha.encode('utf-8'), usuario.senha_hash.encode('utf-8')):
-            raise SenhaInvalidaException()
-
+            raise UsuarioNaoEncontrado(f"Usuário com email {email} não encontrado")
+        
+        if not bcrypt.checkpw(senha.encode(), usuario['senha_hash'].encode()):
+            raise SenhaInvalida("Senha incorreta")
+        
+        # Gerar JWT
         payload = {
-            'usuario_id': str(usuario.id),
-            'email': usuario.email,
-            'tipo_perfil': usuario.tipo_perfil,
-            'iat': datetime.utcnow(),
-            'exp': datetime.utcnow() + timedelta(seconds=self.jwt_expiry)
+            'usuario_id': usuario['id'],
+            'email': usuario['email'],
+            'tipo_perfil': usuario['tipo_perfil'],
+            'exp': datetime.utcnow() + timedelta(hours=24),
+            'iat': datetime.utcnow()
+        }
+        
+        token = jwt.encode(payload, os.getenv('JWT_SECRET', 'seu-secreto-jwt-super-seguro'), algorithm='HS256')
+        
+        return {
+            'token': token,
+            'usuario': {
+                'id': usuario['id'],
+                'email': usuario['email'],
+                'nome': usuario['nome'],
+                'tipo_perfil': usuario['tipo_perfil']
+            }
         }
 
-        try:
-            token = jwt.encode(payload, self.jwt_secret, algorithm='HS256')
-        except Exception as e:
-            raise ErroGeracaoTokenException()
+class CadastrarUsuario:
+    def __init__(self, usuario_repository):
+        self.usuario_repository = usuario_repository
 
-        return usuario.to_dict(include_senha_hash=False), token
+    def executar(self, dados: UsuarioCreate):
+        # Validar duplicatas
+        if self.usuario_repository.email_existe(dados.email):
+            raise EmailJaCadastrado(f"Email {dados.email} já cadastrado")
+        
+        if self.usuario_repository.cpf_existe(dados.cpf):
+            raise CPFJaCadastrado(f"CPF {dados.cpf} já cadastrado")
+        
+        # Hash da senha
+        senha_hash = bcrypt.hashpw(dados.senha.encode(), bcrypt.gensalt()).decode()
+        
+        usuario = Usuario(
+            email=dados.email,
+            cpf=dados.cpf,
+            nome=dados.nome,
+            telefone=dados.telefone,
+            cidade=dados.cidade,
+            tipo_perfil=dados.tipo_perfil,
+            senha_hash=senha_hash
+        )
+        
+        resultado = self.usuario_repository.criar(usuario)
+        
+        return {
+            'id': resultado['id'],
+            'email': resultado['email'],
+            'nome': resultado['nome'],
+            'tipo_perfil': resultado['tipo_perfil'],
+            'mensagem': 'Usuário cadastrado com sucesso'
+        }
+
+class RecuperarSenha:
+    def __init__(self, usuario_repository):
+        self.usuario_repository = usuario_repository
+
+    def executar(self, email, nova_senha):
+        usuario = self.usuario_repository.buscar_por_email(email)
+        if not usuario:
+            raise UsuarioNaoEncontrado(f"Usuário com email {email} não encontrado")
+        
+        # Hash da nova senha
+        senha_hash = bcrypt.hashpw(nova_senha.encode(), bcrypt.gensalt()).decode()
+        
+        self.usuario_repository.atualizar(usuario['id'], {'senha_hash': senha_hash})
+        
+        return {'mensagem': 'Senha atualizada com sucesso'}

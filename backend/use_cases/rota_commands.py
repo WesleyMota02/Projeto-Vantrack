@@ -1,138 +1,64 @@
-from uuid import uuid4
-from domain.rota import Rota
-from infra.rota_repository import RotaRepository
-from infra.usuario_repository import UsuarioRepository
-from exceptions import DadosInvalidosException, UsuarioNaoEncontradoException
+from exceptions import RotaNaoEncontrada, DadosInvalidos
+from domain.rota import RotaCreate
 
 class CriarRota:
+    def __init__(self, rota_repository, veiculo_repository, usuario_repository):
+        self.rota_repository = rota_repository
+        self.veiculo_repository = veiculo_repository
+        self.usuario_repository = usuario_repository
 
-    def __init__(self, repo: RotaRepository, usuario_repo: UsuarioRepository):
-        self.repo = repo
-        self.usuario_repo = usuario_repo
-
-    def executar(self, motorista_id: str, dados: dict) -> Rota:
-        if not motorista_id or not motorista_id.strip():
-            raise DadosInvalidosException("ID do motorista é obrigatório")
-
-        motorista = self.usuario_repo.obter_por_id(motorista_id)
-        if not motorista or motorista.tipo_perfil != 'motorista':
-            raise UsuarioNaoEncontradoException(motorista_id)
-
-        nome = dados.get('nome', '').strip()
-        if not nome or len(nome) < 3:
-            raise DadosInvalidosException("Nome da rota inválido (mínimo 3 caracteres)")
-
-        origem = dados.get('origem', '').strip()
-        if not origem or len(origem) < 3:
-            raise DadosInvalidosException("Origem inválida (mínimo 3 caracteres)")
-
-        destino = dados.get('destino', '').strip()
-        if not destino or len(destino) < 3:
-            raise DadosInvalidosException("Destino inválido (mínimo 3 caracteres)")
-
-        if origem.upper() == destino.upper():
-            raise DadosInvalidosException("Origem e destino não podem ser iguais")
-
-        horario_partida = dados.get('horario_partida', '').strip()
-        if not self._validar_horario(horario_partida):
-            raise DadosInvalidosException("Horário inválido (formato: HH:MM)")
-
-        capacidade_maxima = dados.get('capacidade_maxima', 50)
-        if not isinstance(capacidade_maxima, int) or capacidade_maxima < 1 or capacidade_maxima > 500:
-            raise DadosInvalidosException("Capacidade máxima inválida (1-500)")
-
-        veiculo_id = dados.get('veiculo_id')
-
-        rota = Rota(
-            id=uuid4(),
-            motorista_id=motorista_id,
-            veiculo_id=veiculo_id,
-            nome=nome,
-            origem=origem,
-            destino=destino,
-            horario_partida=horario_partida,
-            capacidade_maxima=capacidade_maxima,
-            ativa=True
-        )
-
-        return self.repo.criar(rota)
-
-    @staticmethod
-    def _validar_horario(horario: str) -> bool:
-        try:
-            partes = horario.split(':')
-            if len(partes) != 2:
-                return False
-            hh = int(partes[0])
-            mm = int(partes[1])
-            return 0 <= hh <= 23 and 0 <= mm <= 59
-        except (ValueError, AttributeError):
-            return False
+    def executar(self, dados: RotaCreate):
+        if dados.origem == dados.destino:
+            raise DadosInvalidos("Origem e destino não podem ser iguais")
+        
+        motorista = self.usuario_repository.buscar_por_id(dados.motorista_id)
+        if not motorista or motorista['tipo_perfil'] != 'motorista':
+            raise DadosInvalidos("Motorista inválido")
+        
+        veiculo = self.veiculo_repository.buscar_por_id(dados.veiculo_id)
+        if not veiculo:
+            raise DadosInvalidos("Veículo não encontrado")
+        
+        if dados.capacidade_maxima > veiculo['capacidade']:
+            raise DadosInvalidos("Capacidade da rota não pode exceder capacidade do veículo")
+        
+        rota = self.rota_repository.criar(dados)
+        return rota
 
 class AtualizarRota:
+    def __init__(self, rota_repository, veiculo_repository):
+        self.rota_repository = rota_repository
+        self.veiculo_repository = veiculo_repository
 
-    def __init__(self, repo: RotaRepository):
-        self.repo = repo
-
-    def executar(self, rota_id: str, dados: dict) -> Rota:
-        if not rota_id or not rota_id.strip():
-            raise DadosInvalidosException("ID da rota é obrigatório")
-
-        rota_existente = self.repo.obter_por_id(rota_id)
-        if not rota_existente:
-            raise DadosInvalidosException(f"Rota '{rota_id}' não encontrada")
-
-        dados_atualizacao = {}
-
-        if 'nome' in dados:
-            nome = dados['nome'].strip()
-            if len(nome) < 3:
-                raise DadosInvalidosException("Nome inválido (mínimo 3 caracteres)")
-            dados_atualizacao['nome'] = nome
-
-        if 'origem' in dados:
-            origem = dados['origem'].strip()
-            if len(origem) < 3:
-                raise DadosInvalidosException("Origem inválida (mínimo 3 caracteres)")
-            dados_atualizacao['origem'] = origem
-
-        if 'destino' in dados:
-            destino = dados['destino'].strip()
-            if len(destino) < 3:
-                raise DadosInvalidosException("Destino inválido (mínimo 3 caracteres)")
-            dados_atualizacao['destino'] = destino
-
-        if 'horario_partida' in dados:
-            horario = dados['horario_partida'].strip()
-            if not CriarRota._validar_horario(horario):
-                raise DadosInvalidosException("Horário inválido (formato: HH:MM)")
-            dados_atualizacao['horario_partida'] = horario
-
-        if 'capacidade_maxima' in dados:
-            capacidade = int(dados['capacidade_maxima'])
-            if capacidade < 1 or capacidade > 500:
-                raise DadosInvalidosException("Capacidade máxima inválida (1-500)")
-            dados_atualizacao['capacidade_maxima'] = capacidade
-
-        if 'veiculo_id' in dados:
-            dados_atualizacao['veiculo_id'] = dados['veiculo_id']
-
-        if not dados_atualizacao:
-            return rota_existente
-
-        return self.repo.atualizar(rota_id, dados_atualizacao)
+    def executar(self, rota_id, dados):
+        rota = self.rota_repository.buscar_por_id(rota_id)
+        if not rota:
+            raise RotaNaoEncontrada(f"Rota com id {rota_id} não encontrada")
+        
+        if 'origem' in dados and 'destino' in dados:
+            if dados['origem'] == dados['destino']:
+                raise DadosInvalidos("Origem e destino não podem ser iguais")
+        elif 'origem' in dados and dados['origem'] == rota['destino']:
+            raise DadosInvalidos("Origem e destino não podem ser iguais")
+        elif 'destino' in dados and dados['destino'] == rota['origem']:
+            raise DadosInvalidos("Origem e destino não podem ser iguais")
+        
+        if 'capacidade_maxima' in dados and 'veiculo_id' in dados:
+            veiculo = self.veiculo_repository.buscar_por_id(dados['veiculo_id'])
+            if dados['capacidade_maxima'] > veiculo['capacidade']:
+                raise DadosInvalidos("Capacidade da rota não pode exceder capacidade do veículo")
+        
+        rota_atualizada = self.rota_repository.atualizar(rota_id, dados)
+        return rota_atualizada
 
 class DeletarRota:
+    def __init__(self, rota_repository):
+        self.rota_repository = rota_repository
 
-    def __init__(self, repo: RotaRepository):
-        self.repo = repo
-
-    def executar(self, rota_id: str) -> bool:
-        if not rota_id or not rota_id.strip():
-            raise DadosInvalidosException("ID da rota é obrigatório")
-
-        rota = self.repo.obter_por_id(rota_id)
+    def executar(self, rota_id):
+        rota = self.rota_repository.buscar_por_id(rota_id)
         if not rota:
-            raise DadosInvalidosException(f"Rota '{rota_id}' não encontrada")
-
-        return self.repo.deletar(rota_id)
+            raise RotaNaoEncontrada(f"Rota com id {rota_id} não encontrada")
+        
+        self.rota_repository.desativar(rota_id)
+        return {'mensagem': 'Rota deletada com sucesso'}

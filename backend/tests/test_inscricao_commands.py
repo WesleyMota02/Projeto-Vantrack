@@ -1,156 +1,92 @@
 import pytest
-from unittest.mock import Mock
-from uuid import uuid4
+from exceptions import InscricaoNaoEncontrada, CapacidadeExcedida, DadosInvalidos, DuplicacaoInscricao
 from use_cases.inscricao_commands import CriarInscricao, CancelarInscricao
-from exceptions import DadosInvalidosException, UsuarioNaoEncontradoException
-from tests.factories import UsuarioFactory, RotaFactory, InscricaoFactory
+from domain.inscricao import InscricaoCreate
 
 class TestCriarInscricao:
-    
-    def test_criar_inscricao_sucesso(self):
-        aluno = UsuarioFactory.criar_aluno()
-        rota = RotaFactory.criar_rota()
+    @pytest.mark.unit
+    def test_criar_inscricao_com_sucesso(self, mocker):
+        inscricao_repo = mocker.MagicMock()
+        rota_repo = mocker.MagicMock()
+        usuario_repo = mocker.MagicMock()
         
-        usuario_repo = Mock()
-        usuario_repo.obter_por_id.return_value = aluno
+        usuario_repo.buscar_por_id.return_value = {'id': 1, 'tipo_perfil': 'aluno'}
+        rota_repo.buscar_por_id.return_value = {'id': 1, 'capacidade_maxima': 50}
+        inscricao_repo.inscricao_existe.return_value = False
+        inscricao_repo.contar_por_rota.return_value = 10
+        inscricao_repo.criar.return_value = {'id': 1, 'aluno_id': 1, 'rota_id': 1}
         
-        rota_repo = Mock()
-        rota_repo.obter_por_id.return_value = rota
+        criar_use_case = CriarInscricao(inscricao_repo, rota_repo, usuario_repo)
+        inscricao = InscricaoCreate(aluno_id=1, rota_id=1)
+        resultado = criar_use_case.executar(inscricao)
         
-        inscricao_repo = Mock()
-        inscricao_repo.obter_inscricao.return_value = None
-        inscricao_repo.obter_por_rota.return_value = []
-        inscricao_repo.criar.return_value = InscricaoFactory.criar_inscricao(aluno.id, rota.id)
+        assert resultado['aluno_id'] == 1
+
+    @pytest.mark.unit
+    def test_criar_inscricao_aluno_invalido(self, mocker):
+        inscricao_repo = mocker.MagicMock()
+        rota_repo = mocker.MagicMock()
+        usuario_repo = mocker.MagicMock()
         
-        usecase = CriarInscricao(inscricao_repo, usuario_repo, rota_repo)
-        inscricao = usecase.executar(str(aluno.id), str(rota.id))
+        usuario_repo.buscar_por_id.return_value = None
         
-        assert inscricao is not None
-        inscricao_repo.criar.assert_called_once()
-    
-    def test_criar_inscricao_aluno_nao_existe(self):
-        usuario_repo = Mock()
-        usuario_repo.obter_por_id.return_value = None
+        criar_use_case = CriarInscricao(inscricao_repo, rota_repo, usuario_repo)
+        inscricao = InscricaoCreate(aluno_id=999, rota_id=1)
         
-        rota_repo = Mock()
-        inscricao_repo = Mock()
+        with pytest.raises(DadosInvalidos):
+            criar_use_case.executar(inscricao)
+
+    @pytest.mark.unit
+    def test_criar_inscricao_duplicada(self, mocker):
+        inscricao_repo = mocker.MagicMock()
+        rota_repo = mocker.MagicMock()
+        usuario_repo = mocker.MagicMock()
         
-        usecase = CriarInscricao(inscricao_repo, usuario_repo, rota_repo)
+        usuario_repo.buscar_por_id.return_value = {'id': 1, 'tipo_perfil': 'aluno'}
+        rota_repo.buscar_por_id.return_value = {'id': 1, 'capacidade_maxima': 50}
+        inscricao_repo.inscricao_existe.return_value = True
         
-        with pytest.raises(UsuarioNaoEncontradoException):
-            usecase.executar(str(uuid4()), str(uuid4()))
-    
-    def test_criar_inscricao_aluno_nao_e_aluno(self):
-        motorista = UsuarioFactory.criar_motorista()
-        usuario_repo = Mock()
-        usuario_repo.obter_por_id.return_value = motorista
+        criar_use_case = CriarInscricao(inscricao_repo, rota_repo, usuario_repo)
+        inscricao = InscricaoCreate(aluno_id=1, rota_id=1)
         
-        rota_repo = Mock()
-        inscricao_repo = Mock()
+        with pytest.raises(DuplicacaoInscricao):
+            criar_use_case.executar(inscricao)
+
+    @pytest.mark.unit
+    def test_criar_inscricao_capacidade_excedida(self, mocker):
+        inscricao_repo = mocker.MagicMock()
+        rota_repo = mocker.MagicMock()
+        usuario_repo = mocker.MagicMock()
         
-        usecase = CriarInscricao(inscricao_repo, usuario_repo, rota_repo)
+        usuario_repo.buscar_por_id.return_value = {'id': 1, 'tipo_perfil': 'aluno'}
+        rota_repo.buscar_por_id.return_value = {'id': 1, 'capacidade_maxima': 50}
+        inscricao_repo.inscricao_existe.return_value = False
+        inscricao_repo.contar_por_rota.return_value = 50
         
-        with pytest.raises(UsuarioNaoEncontradoException):
-            usecase.executar(str(motorista.id), str(uuid4()))
-    
-    def test_criar_inscricao_rota_nao_existe(self):
-        aluno = UsuarioFactory.criar_aluno()
-        usuario_repo = Mock()
-        usuario_repo.obter_por_id.return_value = aluno
+        criar_use_case = CriarInscricao(inscricao_repo, rota_repo, usuario_repo)
+        inscricao = InscricaoCreate(aluno_id=1, rota_id=1)
         
-        rota_repo = Mock()
-        rota_repo.obter_por_id.return_value = None
-        
-        inscricao_repo = Mock()
-        
-        usecase = CriarInscricao(inscricao_repo, usuario_repo, rota_repo)
-        
-        with pytest.raises(DadosInvalidosException):
-            usecase.executar(str(aluno.id), str(uuid4()))
-    
-    def test_criar_inscricao_rota_inativa(self):
-        aluno = UsuarioFactory.criar_aluno()
-        rota = RotaFactory.criar_rota()
-        rota.ativa = False
-        
-        usuario_repo = Mock()
-        usuario_repo.obter_por_id.return_value = aluno
-        
-        rota_repo = Mock()
-        rota_repo.obter_por_id.return_value = rota
-        
-        inscricao_repo = Mock()
-        
-        usecase = CriarInscricao(inscricao_repo, usuario_repo, rota_repo)
-        
-        with pytest.raises(DadosInvalidosException) as exc_info:
-            usecase.executar(str(aluno.id), str(rota.id))
-        
-        assert "inativa" in str(exc_info.value).lower()
-    
-    def test_criar_inscricao_ja_inscrito(self):
-        aluno = UsuarioFactory.criar_aluno()
-        rota = RotaFactory.criar_rota()
-        inscricao_existente = InscricaoFactory.criar_inscricao(aluno.id, rota.id)
-        
-        usuario_repo = Mock()
-        usuario_repo.obter_por_id.return_value = aluno
-        
-        rota_repo = Mock()
-        rota_repo.obter_por_id.return_value = rota
-        
-        inscricao_repo = Mock()
-        inscricao_repo.obter_inscricao.return_value = inscricao_existente
-        
-        usecase = CriarInscricao(inscricao_repo, usuario_repo, rota_repo)
-        
-        with pytest.raises(DadosInvalidosException) as exc_info:
-            usecase.executar(str(aluno.id), str(rota.id))
-        
-        assert "já inscrito" in str(exc_info.value).lower()
-    
-    def test_criar_inscricao_rota_lotada(self):
-        aluno = UsuarioFactory.criar_aluno()
-        rota = RotaFactory.criar_rota()
-        rota.capacidade_maxima = 1
-        
-        usuario_repo = Mock()
-        usuario_repo.obter_por_id.return_value = aluno
-        
-        rota_repo = Mock()
-        rota_repo.obter_por_id.return_value = rota
-        
-        inscricao_repo = Mock()
-        inscricao_repo.obter_inscricao.return_value = None
-        inscricoes_existentes = [InscricaoFactory.criar_inscricao(uuid4(), rota.id)]
-        inscricao_repo.obter_por_rota.return_value = inscricoes_existentes
-        
-        usecase = CriarInscricao(inscricao_repo, usuario_repo, rota_repo)
-        
-        with pytest.raises(DadosInvalidosException) as exc_info:
-            usecase.executar(str(aluno.id), str(rota.id))
-        
-        assert "lotada" in str(exc_info.value).lower()
+        with pytest.raises(CapacidadeExcedida):
+            criar_use_case.executar(inscricao)
 
 class TestCancelarInscricao:
-    
-    def test_cancelar_inscricao_sucesso(self):
-        inscricao = InscricaoFactory.criar_inscricao()
-        inscricao_repo = Mock()
-        inscricao_repo.obter_por_id.return_value = inscricao
-        inscricao_repo.deletar.return_value = True
+    @pytest.mark.unit
+    def test_cancelar_inscricao_com_sucesso(self, mocker):
+        inscricao_repo = mocker.MagicMock()
+        inscricao_repo.buscar_por_id.return_value = {'id': 1, 'status': 'ativa'}
+        inscricao_repo.cancelar.return_value = {'id': 1, 'status': 'cancelada'}
         
-        usecase = CancelarInscricao(inscricao_repo)
-        resultado = usecase.executar(str(inscricao.id))
+        cancelar_use_case = CancelarInscricao(inscricao_repo)
+        resultado = cancelar_use_case.executar(1)
         
-        assert resultado is True
-        inscricao_repo.deletar.assert_called_once()
-    
-    def test_cancelar_inscricao_nao_existe(self):
-        inscricao_repo = Mock()
-        inscricao_repo.obter_por_id.return_value = None
+        assert resultado['status'] == 'cancelada'
+
+    @pytest.mark.unit
+    def test_cancelar_inscricao_nao_encontrada(self, mocker):
+        inscricao_repo = mocker.MagicMock()
+        inscricao_repo.buscar_por_id.return_value = None
         
-        usecase = CancelarInscricao(inscricao_repo)
+        cancelar_use_case = CancelarInscricao(inscricao_repo)
         
-        with pytest.raises(DadosInvalidosException):
-            usecase.executar(str(uuid4()))
+        with pytest.raises(InscricaoNaoEncontrada):
+            cancelar_use_case.executar(999)

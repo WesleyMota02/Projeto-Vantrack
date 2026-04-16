@@ -1,145 +1,84 @@
-from flask import Blueprint, request, jsonify, current_app
+from flask import Blueprint, request, jsonify
 from infra.rota_repository import RotaRepository
+from infra.veiculo_repository import VeiculoRepository
 from infra.usuario_repository import UsuarioRepository
 from use_cases.rota_commands import CriarRota, AtualizarRota, DeletarRota
-from middleware.autenticacao import AutenticacaoMiddleware
-from exceptions import (
-    DadosInvalidosException, UsuarioNaoEncontradoException
-)
+from domain.rota import RotaCreate
+from middleware.autenticacao import requer_token, requer_perfil
+from exceptions import VantrackException
 
-bp = Blueprint('rotas', __name__, url_prefix='/api')
-auth = AutenticacaoMiddleware()
+bp = Blueprint('rota', __name__, url_prefix='/api/rotas')
 
-@bp.route('/motoristas/<motorista_id>/rotas', methods=['POST'])
-@auth.requer_token
-@auth.requer_perfil('motorista')
-def criar_rota(motorista_id):
+@bp.route('', methods=['POST'])
+@requer_token
+@requer_perfil('motorista')
+def criar_rota():
     try:
-        if request.usuario_id != motorista_id:
-            return jsonify({'sucesso': False, 'erro': 'Você pode criar rotas apenas para si mesmo'}), 403
-
-        dados = request.get_json() or request.form.to_dict()
-
-        usuario_repo = UsuarioRepository(current_app.db)
-        rota_repo = RotaRepository(current_app.db)
-        usecase = CriarRota(rota_repo, usuario_repo)
-        rota = usecase.executar(motorista_id, dados)
-
-        return jsonify({
-            'sucesso': True,
-            'mensagem': 'Rota criada com sucesso',
-            'rota': rota.to_dict()
-        }), 201
-
-    except DadosInvalidosException as e:
-        return jsonify({'sucesso': False, 'erro': str(e)}), 400
-    except UsuarioNaoEncontradoException as e:
-        return jsonify({'sucesso': False, 'erro': str(e)}), 404
+        dados = request.get_json()
+        rota_repo = RotaRepository(request.app.db)
+        veiculo_repo = VeiculoRepository(request.app.db)
+        usuario_repo = UsuarioRepository(request.app.db)
+        
+        criar_use_case = CriarRota(rota_repo, veiculo_repo, usuario_repo)
+        
+        rota_create = RotaCreate(**dados)
+        resultado = criar_use_case.executar(rota_create)
+        return jsonify(resultado), 201
+    except VantrackException as e:
+        return jsonify({'erro': str(e)}), 400
     except Exception as e:
-        return jsonify({'sucesso': False, 'erro': 'Erro ao criar rota'}), 500
+        return jsonify({'erro': 'Erro ao criar rota'}), 500
 
-@bp.route('/motoristas/<motorista_id>/rotas', methods=['GET'])
-@auth.requer_token
-def listar_rotas_motorista(motorista_id):
-    try:
-        rota_repo = RotaRepository(current_app.db)
-        rotas = rota_repo.obter_por_motorista(motorista_id)
-
-        return jsonify({
-            'sucesso': True,
-            'total': len(rotas),
-            'rotas': [r.to_dict() for r in rotas]
-        }), 200
-
-    except Exception as e:
-        return jsonify({'sucesso': False, 'erro': 'Erro ao listar rotas'}), 500
-
-@bp.route('/rotas', methods=['GET'])
-@auth.requer_token
-def listar_rotas_ativas():
-    try:
-        rota_repo = RotaRepository(current_app.db)
-        rotas = rota_repo.listar_ativas()
-
-        return jsonify({
-            'sucesso': True,
-            'total': len(rotas),
-            'rotas': [r.to_dict() for r in rotas]
-        }), 200
-
-    except Exception as e:
-        return jsonify({'sucesso': False, 'erro': 'Erro ao listar rotas'}), 500
-
-@bp.route('/rotas/<rota_id>', methods=['GET'])
-@auth.requer_token
+@bp.route('/<int:rota_id>', methods=['GET'])
+@requer_token
 def obter_rota(rota_id):
     try:
-        rota_repo = RotaRepository(current_app.db)
-        rota = rota_repo.obter_por_id(rota_id)
-
+        rota_repo = RotaRepository(request.app.db)
+        rota = rota_repo.buscar_por_id(rota_id)
         if not rota:
-            return jsonify({'sucesso': False, 'erro': 'Rota não encontrada'}), 404
-
-        return jsonify({
-            'sucesso': True,
-            'rota': rota.to_dict()
-        }), 200
-
+            return jsonify({'erro': 'Rota não encontrada'}), 404
+        return jsonify(rota), 200
     except Exception as e:
-        return jsonify({'sucesso': False, 'erro': 'Erro ao obter rota'}), 500
+        return jsonify({'erro': 'Erro ao obter rota'}), 500
 
-@bp.route('/rotas/<rota_id>', methods=['PUT'])
-@auth.requer_token
-@auth.requer_perfil('motorista')
+@bp.route('', methods=['GET'])
+@requer_token
+def listar_rotas():
+    try:
+        rota_repo = RotaRepository(request.app.db)
+        rotas = rota_repo.listar_ativas()
+        return jsonify(rotas), 200
+    except Exception as e:
+        return jsonify({'erro': 'Erro ao listar rotas'}), 500
+
+@bp.route('/<int:rota_id>', methods=['PUT'])
+@requer_token
+@requer_perfil('motorista')
 def atualizar_rota(rota_id):
     try:
-        rota_repo = RotaRepository(current_app.db)
-        rota = rota_repo.obter_por_id(rota_id)
-
-        if not rota:
-            return jsonify({'sucesso': False, 'erro': 'Rota não encontrada'}), 404
-
-        if request.usuario_id != str(rota.motorista_id):
-            return jsonify({'sucesso': False, 'erro': 'Você só pode atualizar suas próprias rotas'}), 403
-
-        dados = request.get_json() or request.form.to_dict()
-        usecase = AtualizarRota(rota_repo)
-        rota_atualizada = usecase.executar(rota_id, dados)
-
-        return jsonify({
-            'sucesso': True,
-            'mensagem': 'Rota atualizada com sucesso',
-            'rota': rota_atualizada.to_dict()
-        }), 200
-
-    except DadosInvalidosException as e:
-        return jsonify({'sucesso': False, 'erro': str(e)}), 400
+        dados = request.get_json()
+        rota_repo = RotaRepository(request.app.db)
+        veiculo_repo = VeiculoRepository(request.app.db)
+        
+        atualizar_use_case = AtualizarRota(rota_repo, veiculo_repo)
+        resultado = atualizar_use_case.executar(rota_id, dados)
+        return jsonify(resultado), 200
+    except VantrackException as e:
+        return jsonify({'erro': str(e)}), 400
     except Exception as e:
-        return jsonify({'sucesso': False, 'erro': 'Erro ao atualizar rota'}), 500
+        return jsonify({'erro': 'Erro ao atualizar rota'}), 500
 
-@bp.route('/rotas/<rota_id>', methods=['DELETE'])
-@auth.requer_token
-@auth.requer_perfil('motorista')
+@bp.route('/<int:rota_id>', methods=['DELETE'])
+@requer_token
+@requer_perfil('motorista')
 def deletar_rota(rota_id):
     try:
-        rota_repo = RotaRepository(current_app.db)
-        rota = rota_repo.obter_por_id(rota_id)
-
-        if not rota:
-            return jsonify({'sucesso': False, 'erro': 'Rota não encontrada'}), 404
-
-        if request.usuario_id != str(rota.motorista_id):
-            return jsonify({'sucesso': False, 'erro': 'Você só pode deletar suas próprias rotas'}), 403
-
-        usecase = DeletarRota(rota_repo)
-        usecase.executar(rota_id)
-
-        return jsonify({
-            'sucesso': True,
-            'mensagem': 'Rota deletada com sucesso'
-        }), 200
-
-    except DadosInvalidosException as e:
-        return jsonify({'sucesso': False, 'erro': str(e)}), 400
+        rota_repo = RotaRepository(request.app.db)
+        deletar_use_case = DeletarRota(rota_repo)
+        
+        resultado = deletar_use_case.executar(rota_id)
+        return jsonify(resultado), 200
+    except VantrackException as e:
+        return jsonify({'erro': str(e)}), 400
     except Exception as e:
-        return jsonify({'sucesso': False, 'erro': 'Erro ao deletar rota'}), 500
+        return jsonify({'erro': 'Erro ao deletar rota'}), 500

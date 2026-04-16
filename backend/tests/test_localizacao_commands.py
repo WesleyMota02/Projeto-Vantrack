@@ -1,124 +1,110 @@
 import pytest
-from unittest.mock import Mock
-from uuid import uuid4
+from exceptions import VeiculoNaoEncontrado, LocalicaoGPSInvalida
 from use_cases.localizacao_commands import RegistrarLocalizacao, ObterUltimaLocalizacao, ObterHistoricoLocalizacao
-from exceptions import DadosInvalidosException
-from tests.factories import VeiculoFactory, LocalizacaoGPSFactory
+from domain.localizacao_gps import LocalizacaoGPSCreate
 
 class TestRegistrarLocalizacao:
-    
-    def test_registrar_localizacao_sucesso(self):
-        veiculo = VeiculoFactory.criar_veiculo()
-        veiculo_repo = Mock()
-        veiculo_repo.obter_por_id.return_value = veiculo
+    @pytest.mark.unit
+    def test_registrar_localizacao_com_sucesso(self, mocker):
+        localizacao_repo = mocker.MagicMock()
+        veiculo_repo = mocker.MagicMock()
         
-        gps_repo = Mock()
-        gps_repo.criar.return_value = LocalizacaoGPSFactory.criar_localizacao(veiculo.id)
+        veiculo_repo.buscar_por_id.return_value = {'id': 1, 'placa': 'ABC1234'}
+        localizacao_repo.criar.return_value = {'id': 1, 'latitude': -23.5505, 'longitude': -46.6333}
         
-        usecase = RegistrarLocalizacao(gps_repo, veiculo_repo)
-        localizacao = usecase.executar(str(veiculo.id), -23.5505, -46.6333)
+        registrar_use_case = RegistrarLocalizacao(localizacao_repo, veiculo_repo)
+        localizacao = LocalizacaoGPSCreate(latitude=-23.5505, longitude=-46.6333, veiculo_id=1)
+        resultado = registrar_use_case.executar(localizacao)
         
-        assert localizacao is not None
-        assert localizacao.latitude == -23.5505
-        assert localizacao.longitude == -46.6333
-        gps_repo.criar.assert_called_once()
-    
-    def test_registrar_localizacao_veiculo_nao_existe(self):
-        veiculo_repo = Mock()
-        veiculo_repo.obter_por_id.return_value = None
+        assert resultado['latitude'] == -23.5505
+
+    @pytest.mark.unit
+    def test_registrar_localizacao_veiculo_invalido(self, mocker):
+        localizacao_repo = mocker.MagicMock()
+        veiculo_repo = mocker.MagicMock()
         
-        gps_repo = Mock()
-        usecase = RegistrarLocalizacao(gps_repo, veiculo_repo)
+        veiculo_repo.buscar_por_id.return_value = None
         
-        with pytest.raises(DadosInvalidosException):
-            usecase.executar(str(uuid4()), -23.5505, -46.6333)
-    
-    def test_registrar_localizacao_latitude_invalida(self):
-        veiculo = VeiculoFactory.criar_veiculo()
-        veiculo_repo = Mock()
-        veiculo_repo.obter_por_id.return_value = veiculo
+        registrar_use_case = RegistrarLocalizacao(localizacao_repo, veiculo_repo)
+        localizacao = LocalizacaoGPSCreate(latitude=-23.5505, longitude=-46.6333, veiculo_id=999)
         
-        gps_repo = Mock()
-        usecase = RegistrarLocalizacao(gps_repo, veiculo_repo)
-        
-        with pytest.raises(DadosInvalidosException):
-            usecase.executar(str(veiculo.id), 91.0, -46.6333)
-    
-    def test_registrar_localizacao_longitude_invalida(self):
-        veiculo = VeiculoFactory.criar_veiculo()
-        veiculo_repo = Mock()
-        veiculo_repo.obter_por_id.return_value = veiculo
-        
-        gps_repo = Mock()
-        usecase = RegistrarLocalizacao(gps_repo, veiculo_repo)
-        
-        with pytest.raises(DadosInvalidosException):
-            usecase.executar(str(veiculo.id), -23.5505, 181.0)
-    
-    def test_validar_coordenadas_validas(self):
-        assert RegistrarLocalizacao._validar_coordenadas(-90, -180) is True
-        assert RegistrarLocalizacao._validar_coordenadas(0, 0) is True
-        assert RegistrarLocalizacao._validar_coordenadas(90, 180) is True
-        assert RegistrarLocalizacao._validar_coordenadas(-23.5505, -46.6333) is True
-    
-    def test_validar_coordenadas_invalidas(self):
-        assert RegistrarLocalizacao._validar_coordenadas(91, 0) is False
-        assert RegistrarLocalizacao._validar_coordenadas(-91, 0) is False
-        assert RegistrarLocalizacao._validar_coordenadas(0, 181) is False
-        assert RegistrarLocalizacao._validar_coordenadas(0, -181) is False
+        with pytest.raises(VeiculoNaoEncontrado):
+            registrar_use_case.executar(localizacao)
+
+    @pytest.mark.unit
+    def test_validacao_latitude_invalida(self, mocker):
+        with pytest.raises(ValueError):
+            LocalizacaoGPSCreate(latitude=91, longitude=-46.6333, veiculo_id=1)
+
+    @pytest.mark.unit
+    def test_validacao_longitude_invalida(self, mocker):
+        with pytest.raises(ValueError):
+            LocalizacaoGPSCreate(latitude=-23.5505, longitude=181, veiculo_id=1)
 
 class TestObterUltimaLocalizacao:
-    
-    def test_obter_ultima_localizacao_sucesso(self):
-        veiculo = VeiculoFactory.criar_veiculo()
-        localizacao = LocalizacaoGPSFactory.criar_localizacao(veiculo.id)
+    @pytest.mark.unit
+    def test_obter_ultima_localizacao_com_sucesso(self, mocker):
+        localizacao_repo = mocker.MagicMock()
+        veiculo_repo = mocker.MagicMock()
         
-        gps_repo = Mock()
-        gps_repo.obter_ultima_por_veiculo.return_value = localizacao
+        veiculo_repo.buscar_por_id.return_value = {'id': 1, 'placa': 'ABC1234'}
+        localizacao_repo.obter_ultima_localizacao.return_value = {'id': 1, 'latitude': -23.5505}
         
-        usecase = ObterUltimaLocalizacao(gps_repo)
-        resultado = usecase.executar(str(veiculo.id))
+        obter_use_case = ObterUltimaLocalizacao(localizacao_repo, veiculo_repo)
+        resultado = obter_use_case.executar(1)
         
-        assert resultado is not None
-        assert resultado['latitude'] == localizacao.latitude
-        gps_repo.obter_ultima_por_veiculo.assert_called_once()
-    
-    def test_obter_ultima_localizacao_nao_existe(self):
-        veiculo = VeiculoFactory.criar_veiculo()
-        gps_repo = Mock()
-        gps_repo.obter_ultima_por_veiculo.return_value = None
+        assert resultado['id'] == 1
+
+    @pytest.mark.unit
+    def test_obter_ultima_localizacao_veiculo_invalido(self, mocker):
+        localizacao_repo = mocker.MagicMock()
+        veiculo_repo = mocker.MagicMock()
         
-        usecase = ObterUltimaLocalizacao(gps_repo)
+        veiculo_repo.buscar_por_id.return_value = None
         
-        with pytest.raises(DadosInvalidosException):
-            usecase.executar(str(veiculo.id))
+        obter_use_case = ObterUltimaLocalizacao(localizacao_repo, veiculo_repo)
+        
+        with pytest.raises(VeiculoNaoEncontrado):
+            obter_use_case.executar(999)
 
 class TestObterHistoricoLocalizacao:
-    
-    def test_obter_historico_localizacao_sucesso(self):
-        veiculo = VeiculoFactory.criar_veiculo()
-        localizacoes = [
-            LocalizacaoGPSFactory.criar_localizacao(veiculo.id),
-            LocalizacaoGPSFactory.criar_localizacao(veiculo.id)
+    @pytest.mark.unit
+    def test_obter_historico_com_sucesso(self, mocker):
+        localizacao_repo = mocker.MagicMock()
+        veiculo_repo = mocker.MagicMock()
+        
+        veiculo_repo.buscar_por_id.return_value = {'id': 1, 'placa': 'ABC1234'}
+        localizacao_repo.obter_historico.return_value = [
+            {'id': 1, 'latitude': -23.5505},
+            {'id': 2, 'latitude': -23.5506}
         ]
         
-        gps_repo = Mock()
-        gps_repo.obter_historico_veiculo.return_value = localizacoes
-        
-        usecase = ObterHistoricoLocalizacao(gps_repo)
-        resultado = usecase.executar(str(veiculo.id), 100)
+        obter_use_case = ObterHistoricoLocalizacao(localizacao_repo, veiculo_repo)
+        resultado = obter_use_case.executar(1, 100)
         
         assert len(resultado) == 2
-        gps_repo.obter_historico_veiculo.assert_called_once()
-    
-    def test_obter_historico_localizacao_limite_invalido(self):
-        veiculo = VeiculoFactory.criar_veiculo()
-        gps_repo = Mock()
+
+    @pytest.mark.unit
+    def test_obter_historico_limite_maximo(self, mocker):
+        localizacao_repo = mocker.MagicMock()
+        veiculo_repo = mocker.MagicMock()
         
-        usecase = ObterHistoricoLocalizacao(gps_repo)
+        veiculo_repo.buscar_por_id.return_value = {'id': 1, 'placa': 'ABC1234'}
+        localizacao_repo.obter_historico.return_value = []
         
-        with pytest.raises(DadosInvalidosException):
-            usecase.executar(str(veiculo.id), 0)
+        obter_use_case = ObterHistoricoLocalizacao(localizacao_repo, veiculo_repo)
+        obter_use_case.executar(1, 1000)
         
-        with pytest.raises(DadosInvalidosException):
-            usecase.executar(str(veiculo.id), 2000)
+        localizacao_repo.obter_historico.assert_called_with(1, 500)
+
+    @pytest.mark.unit
+    def test_obter_historico_veiculo_invalido(self, mocker):
+        localizacao_repo = mocker.MagicMock()
+        veiculo_repo = mocker.MagicMock()
+        
+        veiculo_repo.buscar_por_id.return_value = None
+        
+        obter_use_case = ObterHistoricoLocalizacao(localizacao_repo, veiculo_repo)
+        
+        with pytest.raises(VeiculoNaoEncontrado):
+            obter_use_case.executar(999, 100)

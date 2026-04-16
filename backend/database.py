@@ -1,68 +1,50 @@
 import psycopg2
-from psycopg2.extras import RealDictCursor
+from psycopg2 import pool, extras
 from contextlib import contextmanager
-from typing import Dict, List, Any, Optional
-import os
+import logging
+
+logger = logging.getLogger(__name__)
 
 class Database:
-    def __init__(self, database_url: str):
-        self.database_url = database_url
+    def __init__(self, connection_string):
+        self.connection_string = connection_string
+        self.pool = None
+        self._initialize_pool()
+
+    def _initialize_pool(self):
+        try:
+            self.pool = psycopg2.pool.SimpleConnectionPool(1, 20, self.connection_string)
+            logger.info("Pool de conexões inicializado com sucesso")
+        except Exception as e:
+            logger.error(f"Erro ao inicializar pool de conexões: {e}")
+            raise
 
     @contextmanager
     def get_connection(self):
-        conn = psycopg2.connect(self.database_url)
+        connection = None
         try:
-            yield conn
-            conn.commit()
-        except Exception as e:
-            conn.rollback()
-            raise e
+            connection = self.pool.getconn()
+            yield connection
         finally:
-            conn.close()
+            if connection:
+                self.pool.putconn(connection)
 
-    def execute_query(self, query: str, params: tuple = ()) -> List[Dict[str, Any]]:
+    def execute_query(self, query, params=None, fetch=False):
         with self.get_connection() as conn:
-            with conn.cursor(cursor_factory=RealDictCursor) as cur:
-                cur.execute(query, params)
-                return cur.fetchall()
+            with conn.cursor(cursor_factory=extras.RealDictCursor) as cursor:
+                cursor.execute(query, params or ())
+                if fetch:
+                    return cursor.fetchall()
+                conn.commit()
+                return cursor.rowcount
 
-    def execute_single(self, query: str, params: tuple = ()) -> Optional[Dict[str, Any]]:
+    def execute_query_one(self, query, params=None):
         with self.get_connection() as conn:
-            with conn.cursor(cursor_factory=RealDictCursor) as cur:
-                cur.execute(query, params)
-                return cur.fetchone()
+            with conn.cursor(cursor_factory=extras.RealDictCursor) as cursor:
+                cursor.execute(query, params or ())
+                return cursor.fetchone()
 
-    def execute_insert(self, query: str, params: tuple = ()) -> Optional[str]:
-        with self.get_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute(query, params)
-                if cur.description and cur.description[0][0] == 'id':
-                    return cur.fetchone()
-                return None
-
-    def execute_update(self, query: str, params: tuple = ()) -> int:
-        with self.get_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute(query, params)
-                return cur.rowcount
-
-    def execute_delete(self, query: str, params: tuple = ()) -> int:
-        with self.get_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute(query, params)
-                return cur.rowcount
-
-    def execute_many(self, query: str, params_list: List[tuple]) -> int:
-        with self.get_connection() as conn:
-            with conn.cursor() as cur:
-                for params in params_list:
-                    cur.execute(query, params)
-                return len(params_list)
-
-    @staticmethod
-    def init_db(database_url: str, schema_path: str):
-        with psycopg2.connect(database_url) as conn:
-            with conn.cursor() as cur:
-                with open(schema_path, 'r') as f:
-                    cur.execute(f.read())
-            conn.commit()
+    def close(self):
+        if self.pool:
+            self.pool.closeall()
+            logger.info("Pool de conexões fechado")
