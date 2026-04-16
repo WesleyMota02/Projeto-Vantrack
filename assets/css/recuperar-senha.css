@@ -22,7 +22,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 6px;
   margin-bottom: 12px;
 }
 
@@ -57,7 +57,7 @@ body {
 .form-card {
   background-color: var(--white);
   border-radius: 26px;
-  padding: 24px 24px 16px;
+  padding: 24px 24px 12px;
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
   height: auto;
 }
@@ -116,21 +116,6 @@ body {
   background-color: #0077cc;
 }
 
-.voltar-login {
-  margin-top: 6px;
-  font-size: 0.85rem;
-}
-
-.voltar-login a {
-  color: #ffffff;
-  text-decoration: none;
-  transition: opacity 0.2s;
-}
-
-.voltar-login a:hover {
-  opacity: 0.8;
-}
-
 @media (max-width: 480px) {
   .container {
     padding: 10px;
@@ -144,15 +129,6 @@ body {
     width: 60px;
   }
 }
-
-.voltar-login a:hover {
-  opacity: 0.8;
-}
-
-@media (max-width: 480px) {
-  .container {
-    padding: 10px;
-  }
 
   .logo-recuperar h1 {
     font-size: 1.8rem;
