@@ -9,12 +9,20 @@ const menuItems = document.querySelectorAll('.menu-item');
 const sections = document.querySelectorAll('.dashboard-section');
 const logoutBtn = document.getElementById('logout-btn');
 
-function carregarDadosUsuario() {
+function validarSessao() {
   const token = localStorage.getItem('auth_token');
-  if (!token) {
-    window.location.href = '/index.html';
-    return;
+  const usuario = localStorage.getItem('usuario_dados');
+  
+  if (!token || !usuario) {
+    clearAuth();
+    window.location.href = '/pages/index.html?session_expired=true';
+    return false;
   }
+  return true;
+}
+
+function carregarDadosUsuario() {
+  if (!validarSessao()) return;
 
   const usuarioJSON = localStorage.getItem('usuario_dados');
   if (usuarioJSON) {

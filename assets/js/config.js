@@ -18,10 +18,21 @@ async function fetchAPI(method, endpoint, data = null) {
     const options = { method, headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` } };
     if (data && (method === 'POST' || method === 'PUT')) options.body = JSON.stringify(data);
     const res = await fetch(`${CONFIG.API_URL}${endpoint}`, options);
-    if (res.status === 401) { clearAuth(); window.location.href = '/pages/index.html'; return null; }
+    if (res.status === 401) {
+        handleSessionExpired();
+        return null;
+    }
     const result = await res.json();
     if (!res.ok) throw new Error(result.erro || `Erro ${res.status}`);
     return result;
+}
+
+function handleSessionExpired() {
+    clearAuth();
+    mostrarNotificacao('Sua sessão expirou. Faça login novamente.', 'erro', 2000);
+    setTimeout(() => {
+        window.location.href = '/pages/index.html?session_expired=true';
+    }, 500);
 }
 
 function mostrarNotificacao(msg, tipo = 'info', dur = 3000) {

@@ -1,4 +1,9 @@
 document.addEventListener('DOMContentLoaded',()=>{
+    const params=new URLSearchParams(window.location.search);
+    if(params.get('session_expired')==='true'){
+        mostrarNotificacao('Sua sessão expirou. Faça login novamente.','aviso',4000);
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
     const fL=document.getElementById('form-login'), fRS=document.getElementById('form-recuperar-senha'), bTS=document.querySelector('.toggle-senha');
     const dH=document.querySelector('.dropdown-header'), dL=document.getElementById('dropdown-perfil-list'), dI=document.querySelectorAll('.dropdown-item');
     if(fL) fL.addEventListener('submit',handleLogin);
