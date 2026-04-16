@@ -99,14 +99,13 @@ input:invalid {
   box-shadow: none;
 }
 
-input::-webkit-outer-spin-button,
-input::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
+.msg-erro {
+  display: none !important;
 }
 
-input[type="number"] {
-  -moz-appearance: textfield;
+input-erro,
+.input-erro {
+  border-color: #d9e0ea;
 }
 
 .dropdown-perfil {
