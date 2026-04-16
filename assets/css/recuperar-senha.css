@@ -22,7 +22,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
+  gap: 8px;
   margin-bottom: 12px;
 }
 
@@ -35,8 +35,15 @@ body {
 }
 
 .logo-bus-img {
-  width: 75px;
   height: auto;
+}
+
+.logo-bus-img:first-child {
+  width: 85px;
+}
+
+.logo-bus-img:last-child {
+  width: 65px;
 }
 
 .header p {
@@ -50,7 +57,7 @@ body {
 .form-card {
   background-color: var(--white);
   border-radius: 26px;
-  padding: 24px;
+  padding: 24px 24px 16px;
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
   height: auto;
 }
