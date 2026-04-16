@@ -20,7 +20,7 @@ def criar_app():
     socketio = SocketIO(app, cors_allowed_origins='*', async_mode='threading')
 
     from database import Database
-    db = Database(app.config['DATABASE_URL'])
+    db = Database()
     app.db = db
 
     from presentation.routes import auth_routes, usuario_routes, veiculo_routes, rota_routes, inscricao_routes, gps_routes, dashboard_routes, dois_fatores_routes
