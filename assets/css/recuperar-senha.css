@@ -22,7 +22,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 15px;
   margin-bottom: 15px;
 }
 
@@ -30,15 +30,11 @@ body {
   font-size: 2.2rem;
   font-weight: bold;
   line-height: 1.1;
+  color: #ffffff;
 }
 
 .logo-bus-img {
-  width: 100px;
-  height: auto;
-}
-
-.small-bus-img {
-  width: 60px;
+  width: 80px;
   height: auto;
 }
 
@@ -47,67 +43,83 @@ body {
   line-height: 1.4;
   font-weight: 300;
   margin-top: 8px;
+  color: #ffffff;
 }
 
 .form-card {
   background-color: var(--white);
-  border-radius: 15px;
-  padding: 25px;
-  box-shadow: var(--shadow-md);
+  border-radius: 26px;
+  padding: 26px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
 }
 
 .input-group {
   display: flex;
   align-items: center;
-  border: 1px solid var(--border-gray);
-  border-radius: 8px;
-  padding: 6px 15px;
-  margin-bottom: 20px;
-  background-color: var(--white);
+  border: 1px solid #d9e0ea;
+  border-radius: 999px;
+  padding: 4px 14px;
+  margin-bottom: 16px;
+  background-color: #f6f8fb;
   transition: box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
 .input-group:focus-within {
-  border-color: var(--text-secondary);
-  box-shadow: 0 0 0 2px rgba(160, 160, 160, 0.2);
+  border-color: #0099ff;
+  box-shadow: 0 0 0 2px rgba(0, 153, 255, 0.1);
 }
 
 .input-group input {
   border: none;
   outline: none;
   flex: 1;
-  font-size: 1rem;
-  padding-left: 10px;
-  padding-top: 0;
-  padding-bottom: 0;
-  color: var(--text-primary);
+  font-size: 0.9rem;
+  padding: 8px 0;
+  color: #333;
+  background-color: transparent;
+}
+
+.input-group input::placeholder {
+  color: #a9b4c3;
 }
 
 .icon-email {
-  color: #616161;
-  font-size: 1.2rem;
+  color: #0099ff;
+  font-size: 1rem;
   flex-shrink: 0;
-}
-
-.icon-input-bus-img {
-  display: none;
+  margin-right: 4px;
 }
 
 .btn-enviar {
   width: 100%;
-  padding: 12px;
+  padding: 10px 0;
   background-color: #0099ff;
-  color: var(--white);
+  color: #ffffff;
   border: none;
-  border-radius: 8px;
-  font-size: 1.1rem;
-  font-weight: bold;
+  border-radius: 999px;
+  font-size: 1rem;
+  font-weight: 500;
   cursor: pointer;
   transition: background-color 0.3s ease;
 }
 
 .btn-enviar:hover {
-  background-color: #007acc;
+  background-color: #0077cc;
+}
+
+.voltar-login {
+  margin-top: 16px;
+  font-size: 0.9rem;
+}
+
+.voltar-login a {
+  color: #ffffff;
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+
+.voltar-login a:hover {
+  opacity: 0.8;
 }
 
 @media (max-width: 480px) {
@@ -116,14 +128,10 @@ body {
   }
 
   .logo-recuperar h1 {
-    font-size: 2rem;
+    font-size: 1.8rem;
   }
 
   .logo-bus-img {
     width: 60px;
-  }
-
-  .small-bus-img {
-    width: 40px;
   }
 }

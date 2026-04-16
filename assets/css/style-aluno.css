@@ -1,15 +1,9 @@
-/* =========================
-   RESET BÁSICO
-========================= */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
-/* =========================
-   VARIÁVEIS DE COR
-========================= */
 :root {
     --azul-fundo:   #e6f4ff;
     --azul-faixa:   #bfe3ff;
@@ -21,9 +15,6 @@
     --sombra-card:  0 10px 26px rgba(0, 0, 0, 0.18);
 }
 
-/* =========================
-   FUNDO / FAIXA SUPERIOR
-========================= */
 body {
     font-family: "Poppins", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
         sans-serif;
@@ -34,9 +25,6 @@ body {
     justify-content: center;
 }
 
-/* =========================
-   CONTEÚDO CENTRAL
-========================= */
 #tela-cadastro {
     min-height: 100vh;
     width: 100%;
@@ -52,9 +40,6 @@ body {
     align-items: center;
 }
 
-/* =========================
-   TOPO (ÍCONE + TÍTULO)
-========================= */
 .topo-cadastro {
     display: flex;
     flex-direction: column;
@@ -69,16 +54,12 @@ body {
     height: auto;
 }
 
-/* texto "Cadastro Aluno" */
 .topo-cadastro h1 {
     font-size: 1.9rem;
     font-weight: 500;
     color: #ffffff;
 }
 
-/* =========================
-   CARD BRANCO
-========================= */
 #card-cadastro {
     background-color: var(--branco);
     width: 100%;
@@ -92,9 +73,6 @@ body {
     content: none;
 }
 
-/* =========================
-   FORMULÁRIO
-========================= */
 #form-cadastro {
     width: 100%;
     display: flex;
@@ -102,7 +80,6 @@ body {
     gap: 16px;
 }
 
-/* campo com ícone */
 .campo {
     display: flex;
     align-items: center;
@@ -118,7 +95,6 @@ body {
     color: var(--cinza-ph);
 }
 
-/* input */
 .campo input {
     flex: 1;
     border: none;
@@ -133,7 +109,6 @@ body {
     color: var(--cinza-ph);
 }
 
-/* senha com botão de mostrar */
 .campo-senha {
     position: relative;
     padding-right: 6px;
@@ -154,7 +129,6 @@ body {
     color: var(--cinza-ph);
 }
 
-/* lembrar-me */
 .linha-opcoes {
     display: flex;
     align-items: center;
@@ -176,7 +150,6 @@ body {
     height: 16px;
 }
 
-/* botão cadastrar */
 .btn-cadastrar {
     margin-top: 6px;
     border: none;
