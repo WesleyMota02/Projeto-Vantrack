@@ -53,46 +53,15 @@ def login():
         
         resultado = autenticar_use_case.executar(usuario_login.email, usuario_login.senha)
         
-        # NOVO: Detecção de novo dispositivo para ativar 2FA
-        usuario_id = resultado['usuario_id']
-        user_agent = request.headers.get('User-Agent', 'unknown')
-        ip_address = request.remote_addr
-        dispositivo_hash = hashlib.sha256(f"{user_agent}:{ip_address}".encode()).hexdigest()
-        
-        # Verificar se este dispositivo já foi verificado
-        dois_fatores_repo = Dois_FatoresRepository(current_app.db)
-        codigo_ativo = dois_fatores_repo.buscar_ativo_por_usuario_e_dispositivo(usuario_id, dispositivo_hash)
-        
-        # Se não há código ativo para este dispositivo, é um novo dispositivo - requer 2FA
-        if not codigo_ativo:
-            # Gerar código 2FA
-            generar_use_case = GenerarCodigoVerificacao2FA(usuario_repo, dois_fatores_repo)
-            codigo_resultado = generar_use_case.executar(usuario_id, dispositivo_hash, 'SMS')
-            
-            # Enviar código
-            enviar_use_case = EnviarCodigoVerificacao2FA(dois_fatores_repo)
-            try:
-                enviar_use_case.executar(codigo_resultado['dois_fatores_id'])
-            except:
-                # Se falhar enviar, continua mesmo assim - usuário pode reenviar
-                pass
-            
-            # Retornar response indicando que 2FA é necessário
-            return jsonify({
-                'requer_2fa': True,
-                'dois_fatores_id': codigo_resultado['dois_fatores_id'],
-                'usuario_id': usuario_id,
-                'metodo': codigo_resultado['metodo'],
-                'telefone_mascarado': codigo_resultado['telefone_sms_mascarado'],
-                'mensagem': 'Novo dispositivo detectado. Verifique seu celular e insira o código de 6 dígitos.'
-            }), 200
-        else:
-            # Dispositivo conhecido - login normal sem 2FA
-            return jsonify(resultado), 200
+        # Por enquanto, login simples sem 2FA
+        return jsonify(resultado), 200
     
     except VantrackException as e:
         return jsonify({'erro': str(e)}), 401
     except Exception as e:
+        logger.error(f"Erro ao fazer login: {str(e)}\n{traceback.format_exc()}")
+        print(f"ERRO NO LOGIN: {e}")
+        print(traceback.format_exc())
         return jsonify({'erro': 'Erro ao fazer login'}), 500
 
 @bp.route('/recuperar-senha', methods=['POST'])
