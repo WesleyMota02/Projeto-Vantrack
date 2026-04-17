@@ -6,10 +6,14 @@ class LocalizacaoGPSRepository:
         query = """
             INSERT INTO localizacoes_gps (latitude, longitude, timestamp, veiculo_id)
             VALUES (%s, %s, NOW(), %s)
-            RETURNING *
         """
         params = (localizacao.latitude, localizacao.longitude, localizacao.veiculo_id)
-        return self.db.execute_query_one(query, params)
+        self.db.execute_query(query, params)
+        
+        # Buscar a localização criada pelo último ID inserido
+        last_id = self.db.get_last_insert_id()
+        localizacao_criada = self.obter_por_id(last_id)
+        return localizacao_criada
 
     def obter_ultima_localizacao(self, veiculo_id):
         query = """

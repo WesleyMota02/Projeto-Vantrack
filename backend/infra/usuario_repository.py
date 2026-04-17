@@ -59,8 +59,12 @@ class UsuarioRepository:
             return None
         
         params.append(usuario_id)
-        query = f"UPDATE usuarios SET {', '.join(campos)}, atualizado_em = NOW() WHERE id = %s AND ativo = TRUE RETURNING *"
-        return self.db.execute_query_one(query, params)
+        query = f"UPDATE usuarios SET {', '.join(campos)}, atualizado_em = NOW() WHERE id = %s AND ativo = TRUE"
+        self.db.execute_query(query, params)
+        
+        # Buscar o usuário atualizado
+        usuario_atualizado = self.buscar_por_id(usuario_id)
+        return usuario_atualizado
 
     def soft_delete(self, usuario_id):
         query = "UPDATE usuarios SET ativo = FALSE, atualizado_em = NOW() WHERE id = %s"

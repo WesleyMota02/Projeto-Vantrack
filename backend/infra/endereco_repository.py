@@ -8,14 +8,18 @@ class EnderecoRepository:
             (aluno_id, rota_id, endereco_coleta, endereco_entrega, 
              latitude_coleta, longitude_coleta, latitude_entrega, longitude_entrega, principal, criado_em)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())
-            RETURNING *
         """
         params = (
             endereco.aluno_id, endereco.rota_id, endereco.endereco_coleta, endereco.endereco_entrega,
             endereco.latitude_coleta, endereco.longitude_coleta, endereco.latitude_entrega, 
             endereco.longitude_entrega, endereco.principal
         )
-        return self.db.execute_query_one(query, params)
+        self.db.execute_query(query, params)
+        
+        # Buscar o endereço criado pelo último ID inserido
+        last_id = self.db.get_last_insert_id()
+        endereco_criado = self.buscar_por_id(last_id)
+        return endereco_criado
 
     def buscar_por_id(self, endereco_id):
         query = "SELECT * FROM enderecos WHERE id = %s"
@@ -49,8 +53,12 @@ class EnderecoRepository:
             return None
         
         params.append(endereco_id)
-        query = f"UPDATE enderecos SET {', '.join(campos)}, atualizado_em = NOW() WHERE id = %s RETURNING *"
-        return self.db.execute_query_one(query, params)
+        query = f"UPDATE enderecos SET {', '.join(campos)}, atualizado_em = NOW() WHERE id = %s"
+        self.db.execute_query(query, params)
+        
+        # Buscar o endereço atualizado
+        endereco_atualizado = self.buscar_por_id(endereco_id)
+        return endereco_atualizado
 
     def deletar(self, endereco_id):
         query = "DELETE FROM enderecos WHERE id = %s"

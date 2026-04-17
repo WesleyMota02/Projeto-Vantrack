@@ -6,10 +6,14 @@ class InscricaoRepository:
         query = """
             INSERT INTO inscricoes (aluno_id, rota_id, status, criado_em)
             VALUES (%s, %s, %s, NOW())
-            RETURNING *
         """
         params = (inscricao.aluno_id, inscricao.rota_id, 'ativa')
-        return self.db.execute_query_one(query, params)
+        self.db.execute_query(query, params)
+        
+        # Buscar a inscrição criada pelo último ID inserido
+        last_id = self.db.get_last_insert_id()
+        inscricao_criada = self.buscar_por_id(last_id)
+        return inscricao_criada
 
     def buscar_por_id(self, inscricao_id):
         query = "SELECT * FROM inscricoes WHERE id = %s"
@@ -34,12 +38,20 @@ class InscricaoRepository:
         return result is not None
 
     def atualizar_status(self, inscricao_id, novo_status):
-        query = "UPDATE inscricoes SET status = %s, atualizado_em = NOW() WHERE id = %s RETURNING *"
-        return self.db.execute_query_one(query, (novo_status, inscricao_id))
+        query = "UPDATE inscricoes SET status = %s, atualizado_em = NOW() WHERE id = %s"
+        self.db.execute_query(query, (novo_status, inscricao_id))
+        
+        # Buscar a inscrição atualizada
+        inscricao_atualizada = self.buscar_por_id(inscricao_id)
+        return inscricao_atualizada
 
     def cancelar(self, inscricao_id):
-        query = "UPDATE inscricoes SET status = 'cancelada', atualizado_em = NOW() WHERE id = %s RETURNING *"
-        return self.db.execute_query_one(query, (inscricao_id,))
+        query = "UPDATE inscricoes SET status = 'cancelada', atualizado_em = NOW() WHERE id = %s"
+        self.db.execute_query(query, (inscricao_id,))
+        
+        # Buscar a inscrição atualizada
+        inscricao_atualizada = self.buscar_por_id(inscricao_id)
+        return inscricao_atualizada
 
     def listar_todas(self):
         query = "SELECT * FROM inscricoes"

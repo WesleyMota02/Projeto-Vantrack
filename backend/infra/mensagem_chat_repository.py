@@ -7,10 +7,14 @@ class MensagemChatRepository:
             INSERT INTO mensagens_chat 
             (remetente_id, destinatario_id, texto, lido, criado_em)
             VALUES (%s, %s, %s, FALSE, NOW())
-            RETURNING *
         """
         params = (mensagem.remetente_id, mensagem.destinatario_id, mensagem.texto)
-        return self.db.execute_query_one(query, params)
+        self.db.execute_query(query, params)
+        
+        # Buscar a mensagem criada pelo último ID inserido
+        last_id = self.db.get_last_insert_id()
+        mensagem_criada = self.buscar_por_id(last_id)
+        return mensagem_criada
 
     def buscar_por_id(self, mensagem_id):
         query = "SELECT * FROM mensagens_chat WHERE id = %s"
@@ -61,10 +65,13 @@ class MensagemChatRepository:
         query = """
             UPDATE mensagens_chat 
             SET lido = TRUE, lido_em = NOW() 
-            WHERE id = %s 
-            RETURNING *
+            WHERE id = %s
         """
-        return self.db.execute_query_one(query, (mensagem_id,))
+        self.db.execute_query(query, (mensagem_id,))
+        
+        # Buscar a mensagem atualizada
+        mensagem_atualizada = self.buscar_por_id(mensagem_id)
+        return mensagem_atualizada
 
     def marcar_conversa_como_lida(self, usuario_id, outro_usuario_id):
         query = """

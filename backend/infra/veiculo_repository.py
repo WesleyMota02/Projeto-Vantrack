@@ -6,10 +6,14 @@ class VeiculoRepository:
         query = """
             INSERT INTO veiculos (placa, modelo, ano, capacidade, motorista_id, criado_em)
             VALUES (%s, %s, %s, %s, %s, NOW())
-            RETURNING *
         """
         params = (veiculo.placa, veiculo.modelo, veiculo.ano, veiculo.capacidade, veiculo.motorista_id)
-        return self.db.execute_query_one(query, params)
+        self.db.execute_query(query, params)
+        
+        # Buscar o veículo criado pelo último ID inserido
+        last_id = self.db.get_last_insert_id()
+        veiculo_criado = self.buscar_por_id(last_id)
+        return veiculo_criado
 
     def buscar_por_id(self, veiculo_id):
         query = "SELECT * FROM veiculos WHERE id = %s"
@@ -39,8 +43,12 @@ class VeiculoRepository:
             return None
         
         params.append(veiculo_id)
-        query = f"UPDATE veiculos SET {', '.join(campos)}, atualizado_em = NOW() WHERE id = %s RETURNING *"
-        return self.db.execute_query_one(query, params)
+        query = f"UPDATE veiculos SET {', '.join(campos)}, atualizado_em = NOW() WHERE id = %s"
+        self.db.execute_query(query, params)
+        
+        # Buscar o veículo atualizado
+        veiculo_atualizado = self.buscar_por_id(veiculo_id)
+        return veiculo_atualizado
 
     def deletar(self, veiculo_id):
         query = "DELETE FROM veiculos WHERE id = %s"

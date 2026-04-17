@@ -3,8 +3,12 @@ import mysql.connector
 from mysql.connector import pooling
 from contextlib import contextmanager
 import logging
+import threading
 
 logger = logging.getLogger(__name__)
+
+# Thread-local storage for last insert ID
+_thread_local = threading.local()
 
 
 class Database:
@@ -78,6 +82,8 @@ class Database:
                 # Auto-commit para INSERT, UPDATE, DELETE
                 if any(query.strip().upper().startswith(stmt) for stmt in ['INSERT', 'UPDATE', 'DELETE']):
                     conn.commit()
+                    # Store the last insert ID for MySQL
+                    _thread_local.last_insert_id = cursor.lastrowid
                 if fetch:
                     return cursor.fetchall()
                 return cursor.rowcount
@@ -92,9 +98,15 @@ class Database:
                 # Auto-commit para INSERT, UPDATE, DELETE
                 if any(query.strip().upper().startswith(stmt) for stmt in ['INSERT', 'UPDATE', 'DELETE']):
                     conn.commit()
+                    # Store the last insert ID for MySQL
+                    _thread_local.last_insert_id = cursor.lastrowid
                 return cursor.fetchone()
             finally:
                 cursor.close()
+
+    def get_last_insert_id(self):
+        """Get the last inserted ID from the current thread"""
+        return getattr(_thread_local, 'last_insert_id', None)
 
     def close(self):
         try:

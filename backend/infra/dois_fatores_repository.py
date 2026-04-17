@@ -21,14 +21,12 @@ class Dois_FatoresRepository:
             (id, usuario_id, dispositivo_hash, codigo_2fa, metodo, telefone_sms, email_envio, 
              verificado, tentativas_restantes, criado_em, expira_em)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-            RETURNING *
         """
 
-        resultado = self.db.execute_query(
+        self.db.execute_query(
             query,
             (codigo.id, usuario_id, dispositivo_hash, codigo.codigo_2fa, metodo,
-             telefone_sms, email_envio, False, 3, codigo.criado_em, codigo.expira_em),
-            fetch_one=True
+             telefone_sms, email_envio, False, 3, codigo.criado_em, codigo.expira_em)
         )
 
         return codigo
@@ -36,7 +34,7 @@ class Dois_FatoresRepository:
     def buscar_por_id(self, dois_fatores_id):
         """Busca código 2FA por ID"""
         query = "SELECT * FROM dois_fatores WHERE id = %s"
-        resultado = self.db.execute_query(query, (dois_fatores_id,), fetch_one=True)
+        resultado = self.db.execute_query_one(query, (dois_fatores_id,))
         
         if not resultado:
             return None
@@ -55,10 +53,9 @@ class Dois_FatoresRepository:
             LIMIT 1
         """
         
-        resultado = self.db.execute_query(
+        resultado = self.db.execute_query_one(
             query,
-            (usuario_id, dispositivo_hash),
-            fetch_one=True
+            (usuario_id, dispositivo_hash)
         )
         
         if not resultado:
@@ -74,15 +71,18 @@ class Dois_FatoresRepository:
                 tentativas_restantes = %s,
                 verificado_em = CASE WHEN %s THEN NOW() ELSE verificado_em END
             WHERE id = %s
-            RETURNING *
         """
         
-        resultado = self.db.execute_query(
+        self.db.execute_query(
             query,
-            (verificado, tentativas_restantes, verificado, dois_fatores_id),
-            fetch_one=True
+            (verificado, tentativas_restantes, verificado, dois_fatores_id)
         )
         
+        # Buscar o registro atualizado
+        resultado = self.db.execute_query_one(
+            "SELECT * FROM dois_fatores WHERE id = %s",
+            (dois_fatores_id,)
+        )
         return self._mapear_para_modelo(resultado)
 
     def limpar_expirados(self, usuario_id):

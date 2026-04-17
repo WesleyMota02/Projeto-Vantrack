@@ -7,10 +7,14 @@ class PresencaDiariaRepository:
             INSERT INTO presenca_diaria 
             (aluno_id, rota_id, data, vai_embarcar, confirmado_em, criado_em)
             VALUES (%s, %s, %s, %s, NOW(), NOW())
-            RETURNING *
         """
         params = (presenca.aluno_id, presenca.rota_id, presenca.data, presenca.vai_embarcar)
-        return self.db.execute_query_one(query, params)
+        self.db.execute_query(query, params)
+        
+        # Buscar a presença criada pelo último ID inserido
+        last_id = self.db.get_last_insert_id()
+        presenca_criada = self.buscar_por_id(last_id)
+        return presenca_criada
 
     def buscar_por_id(self, presenca_id):
         query = "SELECT * FROM presenca_diaria WHERE id = %s"
@@ -73,8 +77,12 @@ class PresencaDiariaRepository:
             return None
         
         params.append(presenca_id)
-        query = f"UPDATE presenca_diaria SET {', '.join(campos)}, atualizado_em = NOW() WHERE id = %s RETURNING *"
-        return self.db.execute_query_one(query, params)
+        query = f"UPDATE presenca_diaria SET {', '.join(campos)}, atualizado_em = NOW() WHERE id = %s"
+        self.db.execute_query(query, params)
+        
+        # Buscar a presença atualizada
+        presenca_atualizada = self.buscar_por_id(presenca_id)
+        return presenca_atualizada
 
     def deletar(self, presenca_id):
         query = "DELETE FROM presenca_diaria WHERE id = %s"
