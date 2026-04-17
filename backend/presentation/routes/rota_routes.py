@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, current_app
 from infra.rota_repository import RotaRepository
 from infra.veiculo_repository import VeiculoRepository
 from infra.usuario_repository import UsuarioRepository
@@ -15,9 +15,9 @@ bp = Blueprint('rota', __name__, url_prefix='/api/rotas')
 def criar_rota():
     try:
         dados = request.get_json()
-        rota_repo = RotaRepository(request.app.db)
-        veiculo_repo = VeiculoRepository(request.app.db)
-        usuario_repo = UsuarioRepository(request.app.db)
+        rota_repo = RotaRepository(current_app.db)
+        veiculo_repo = VeiculoRepository(current_app.db)
+        usuario_repo = UsuarioRepository(current_app.db)
         
         criar_use_case = CriarRota(rota_repo, veiculo_repo, usuario_repo)
         
@@ -33,7 +33,7 @@ def criar_rota():
 @requer_token
 def obter_rota(rota_id):
     try:
-        rota_repo = RotaRepository(request.app.db)
+        rota_repo = RotaRepository(current_app.db)
         rota = rota_repo.buscar_por_id(rota_id)
         if not rota:
             return jsonify({'erro': 'Rota não encontrada'}), 404
@@ -45,7 +45,7 @@ def obter_rota(rota_id):
 @requer_token
 def listar_rotas():
     try:
-        rota_repo = RotaRepository(request.app.db)
+        rota_repo = RotaRepository(current_app.db)
         rotas = rota_repo.listar_ativas()
         return jsonify(rotas), 200
     except Exception as e:
@@ -57,8 +57,8 @@ def listar_rotas():
 def atualizar_rota(rota_id):
     try:
         dados = request.get_json()
-        rota_repo = RotaRepository(request.app.db)
-        veiculo_repo = VeiculoRepository(request.app.db)
+        rota_repo = RotaRepository(current_app.db)
+        veiculo_repo = VeiculoRepository(current_app.db)
         
         atualizar_use_case = AtualizarRota(rota_repo, veiculo_repo)
         resultado = atualizar_use_case.executar(rota_id, dados)
@@ -73,7 +73,7 @@ def atualizar_rota(rota_id):
 @requer_perfil('motorista')
 def deletar_rota(rota_id):
     try:
-        rota_repo = RotaRepository(request.app.db)
+        rota_repo = RotaRepository(current_app.db)
         deletar_use_case = DeletarRota(rota_repo)
         
         resultado = deletar_use_case.executar(rota_id)

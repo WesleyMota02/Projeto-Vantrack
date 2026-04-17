@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, current_app
 from infra.endereco_repository import EnderecoRepository
 from infra.presenca_diaria_repository import PresencaDiariaRepository
 from infra.mensagem_chat_repository import MensagemChatRepository
@@ -28,11 +28,11 @@ def dashboard_motorista():
     try:
         motorista_id = request.usuario_id
         
-        usuario_repo = UsuarioRepository(request.app.db)
-        rota_repo = RotaRepository(request.app.db)
-        inscricao_repo = InscricaoRepository(request.app.db)
-        presenca_repo = PresencaDiariaRepository(request.app.db)
-        mensagem_repo = MensagemChatRepository(request.app.db)
+        usuario_repo = UsuarioRepository(current_app.db)
+        rota_repo = RotaRepository(current_app.db)
+        inscricao_repo = InscricaoRepository(current_app.db)
+        presenca_repo = PresencaDiariaRepository(current_app.db)
+        mensagem_repo = MensagemChatRepository(current_app.db)
         
         use_case = ObtenerDashboardMotorista(
             usuario_repo, rota_repo, inscricao_repo, presenca_repo, mensagem_repo
@@ -53,13 +53,13 @@ def dashboard_aluno():
     try:
         aluno_id = request.usuario_id
         
-        usuario_repo = UsuarioRepository(request.app.db)
-        inscricao_repo = InscricaoRepository(request.app.db)
-        presenca_repo = PresencaDiariaRepository(request.app.db)
-        endereco_repo = EnderecoRepository(request.app.db)
-        rota_repo = RotaRepository(request.app.db)
-        veiculo_repo = VeiculoRepository(request.app.db)
-        localizacao_repo = LocalizacaoGPSRepository(request.app.db)
+        usuario_repo = UsuarioRepository(current_app.db)
+        inscricao_repo = InscricaoRepository(current_app.db)
+        presenca_repo = PresencaDiariaRepository(current_app.db)
+        endereco_repo = EnderecoRepository(current_app.db)
+        rota_repo = RotaRepository(current_app.db)
+        veiculo_repo = VeiculoRepository(current_app.db)
+        localizacao_repo = LocalizacaoGPSRepository(current_app.db)
         
         use_case = ObtenerDashboardAluno(
             usuario_repo, inscricao_repo, presenca_repo, endereco_repo, 
@@ -85,9 +85,9 @@ def confirmar_presenca():
         if 'vai_embarcar' not in dados:
             return jsonify({'erro': 'Campo vai_embarcar é obrigatório'}), 400
         
-        inscricao_repo = InscricaoRepository(request.app.db)
-        presenca_repo = PresencaDiariaRepository(request.app.db)
-        usuario_repo = UsuarioRepository(request.app.db)
+        inscricao_repo = InscricaoRepository(current_app.db)
+        presenca_repo = PresencaDiariaRepository(current_app.db)
+        usuario_repo = UsuarioRepository(current_app.db)
         
         use_case = ConfirmarPresenca(presenca_repo, inscricao_repo, usuario_repo)
         resultado = use_case.executar(aluno_id, dados['vai_embarcar'])
@@ -109,8 +109,8 @@ def enviar_mensagem():
         if 'destinatario_id' not in dados or 'texto' not in dados:
             return jsonify({'erro': 'Campos obrigatórios faltando'}), 400
         
-        mensagem_repo = MensagemChatRepository(request.app.db)
-        usuario_repo = UsuarioRepository(request.app.db)
+        mensagem_repo = MensagemChatRepository(current_app.db)
+        usuario_repo = UsuarioRepository(current_app.db)
         
         use_case = EnviarMensagem(mensagem_repo, usuario_repo)
         resultado = use_case.executar(remetente_id, dados['destinatario_id'], dados['texto'])
@@ -129,8 +129,8 @@ def obter_conversa(outro_usuario_id):
         usuario_id = request.usuario_id
         limit = request.args.get('limit', 50, type=int)
         
-        mensagem_repo = MensagemChatRepository(request.app.db)
-        usuario_repo = UsuarioRepository(request.app.db)
+        mensagem_repo = MensagemChatRepository(current_app.db)
+        usuario_repo = UsuarioRepository(current_app.db)
         
         use_case = ObtenerConversa(mensagem_repo, usuario_repo)
         resultado = use_case.executar(usuario_id, outro_usuario_id, limit)
@@ -148,8 +148,8 @@ def listar_nao_lidas():
     try:
         usuario_id = request.usuario_id
         
-        mensagem_repo = MensagemChatRepository(request.app.db)
-        usuario_repo = UsuarioRepository(request.app.db)
+        mensagem_repo = MensagemChatRepository(current_app.db)
+        usuario_repo = UsuarioRepository(current_app.db)
         
         use_case = ListarMensagensNaoLidas(mensagem_repo, usuario_repo)
         resultado = use_case.executar(usuario_id)
@@ -173,9 +173,9 @@ def atualizar_endereco():
         if not all(campo in dados for campo in campos_obrigatorios):
             return jsonify({'erro': 'Campos obrigatórios faltando'}), 400
         
-        endereco_repo = EnderecoRepository(request.app.db)
-        usuario_repo = UsuarioRepository(request.app.db)
-        inscricao_repo = InscricaoRepository(request.app.db)
+        endereco_repo = EnderecoRepository(current_app.db)
+        usuario_repo = UsuarioRepository(current_app.db)
+        inscricao_repo = InscricaoRepository(current_app.db)
         
         use_case = AtualizarEndereco(endereco_repo, usuario_repo, inscricao_repo)
         resultado = use_case.executar(

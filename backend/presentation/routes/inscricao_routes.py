@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, current_app
 from infra.inscricao_repository import InscricaoRepository
 from infra.rota_repository import RotaRepository
 from infra.usuario_repository import UsuarioRepository
@@ -15,9 +15,9 @@ bp = Blueprint('inscricao', __name__, url_prefix='/api/inscricoes')
 def criar_inscricao():
     try:
         dados = request.get_json()
-        inscricao_repo = InscricaoRepository(request.app.db)
-        rota_repo = RotaRepository(request.app.db)
-        usuario_repo = UsuarioRepository(request.app.db)
+        inscricao_repo = InscricaoRepository(current_app.db)
+        rota_repo = RotaRepository(current_app.db)
+        usuario_repo = UsuarioRepository(current_app.db)
         
         criar_use_case = CriarInscricao(inscricao_repo, rota_repo, usuario_repo)
         
@@ -33,7 +33,7 @@ def criar_inscricao():
 @requer_token
 def obter_inscricao(inscricao_id):
     try:
-        inscricao_repo = InscricaoRepository(request.app.db)
+        inscricao_repo = InscricaoRepository(current_app.db)
         inscricao = inscricao_repo.buscar_por_id(inscricao_id)
         if not inscricao:
             return jsonify({'erro': 'Inscrição não encontrada'}), 404
@@ -45,7 +45,7 @@ def obter_inscricao(inscricao_id):
 @requer_token
 def listar_inscricoes():
     try:
-        inscricao_repo = InscricaoRepository(request.app.db)
+        inscricao_repo = InscricaoRepository(current_app.db)
         inscricoes = inscricao_repo.listar_todas()
         return jsonify(inscricoes), 200
     except Exception as e:
@@ -56,7 +56,7 @@ def listar_inscricoes():
 @requer_perfil('aluno')
 def cancelar_inscricao(inscricao_id):
     try:
-        inscricao_repo = InscricaoRepository(request.app.db)
+        inscricao_repo = InscricaoRepository(current_app.db)
         cancelar_use_case = CancelarInscricao(inscricao_repo)
         
         resultado = cancelar_use_case.executar(inscricao_id)

@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, current_app
 from infra.usuario_repository import UsuarioRepository
 from use_cases.usuario_queries import ObterUsuario, ListarUsuariosPorTipo, AtualizarPerfil
 from middleware.autenticacao import requer_token
@@ -10,7 +10,7 @@ bp = Blueprint('usuario', __name__, url_prefix='/api/usuarios')
 @requer_token
 def obter_usuario(usuario_id):
     try:
-        usuario_repo = UsuarioRepository(request.app.db)
+        usuario_repo = UsuarioRepository(current_app.db)
         obter_use_case = ObterUsuario(usuario_repo)
         
         resultado = obter_use_case.executar(usuario_id)
@@ -24,7 +24,7 @@ def obter_usuario(usuario_id):
 @requer_token
 def listar_alunos():
     try:
-        usuario_repo = UsuarioRepository(request.app.db)
+        usuario_repo = UsuarioRepository(current_app.db)
         listar_use_case = ListarUsuariosPorTipo(usuario_repo)
         
         resultado = listar_use_case.executar('aluno')
@@ -36,7 +36,7 @@ def listar_alunos():
 @requer_token
 def listar_motoristas():
     try:
-        usuario_repo = UsuarioRepository(request.app.db)
+        usuario_repo = UsuarioRepository(current_app.db)
         listar_use_case = ListarUsuariosPorTipo(usuario_repo)
         
         resultado = listar_use_case.executar('motorista')
@@ -49,7 +49,7 @@ def listar_motoristas():
 def atualizar_usuario(usuario_id):
     try:
         dados = request.get_json()
-        usuario_repo = UsuarioRepository(request.app.db)
+        usuario_repo = UsuarioRepository(current_app.db)
         atualizar_use_case = AtualizarPerfil(usuario_repo)
         
         resultado = atualizar_use_case.executar(usuario_id, dados)

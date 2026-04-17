@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, current_app
 from infra.usuario_repository import UsuarioRepository
 from infra.dois_fatores_repository import Dois_FatoresRepository
 from use_cases.autenticar_usuario import AutenticarUsuario, CadastrarUsuario, RecuperarSenha
@@ -7,6 +7,10 @@ from domain.usuario import UsuarioCreate, UsuarioLogin, UsuarioRecuperarSenha
 from exceptions import VantrackException
 import os
 import hashlib
+import traceback
+import logging
+
+logger = logging.getLogger(__name__)
 
 bp = Blueprint('auth', __name__, url_prefix='/api')
 
@@ -21,7 +25,7 @@ def cadastro():
             return jsonify({'erro': 'Campos obrigatórios faltando'}), 400
         
         usuario_create = UsuarioCreate(**dados)
-        usuario_repo = UsuarioRepository(request.app.db)
+        usuario_repo = UsuarioRepository(current_app.db)
         cadastrar_use_case = CadastrarUsuario(usuario_repo)
         
         resultado = cadastrar_use_case.executar(usuario_create)
@@ -30,6 +34,9 @@ def cadastro():
     except VantrackException as e:
         return jsonify({'erro': str(e)}), 400
     except Exception as e:
+        logger.error(f"Erro ao cadastrar: {str(e)}\n{traceback.format_exc()}")
+        print(f"ERRO NO CADASTRO: {e}")
+        print(traceback.format_exc())
         return jsonify({'erro': 'Erro ao cadastrar usuário'}), 500
 
 @bp.route('/login', methods=['POST'])
@@ -41,7 +48,7 @@ def login():
             return jsonify({'erro': 'Email e senha são obrigatórios'}), 400
         
         usuario_login = UsuarioLogin(**dados)
-        usuario_repo = UsuarioRepository(request.app.db)
+        usuario_repo = UsuarioRepository(current_app.db)
         autenticar_use_case = AutenticarUsuario(usuario_repo)
         
         resultado = autenticar_use_case.executar(usuario_login.email, usuario_login.senha)
@@ -53,7 +60,7 @@ def login():
         dispositivo_hash = hashlib.sha256(f"{user_agent}:{ip_address}".encode()).hexdigest()
         
         # Verificar se este dispositivo já foi verificado
-        dois_fatores_repo = Dois_FatoresRepository(request.app.db)
+        dois_fatores_repo = Dois_FatoresRepository(current_app.db)
         codigo_ativo = dois_fatores_repo.buscar_ativo_por_usuario_e_dispositivo(usuario_id, dispositivo_hash)
         
         # Se não há código ativo para este dispositivo, é um novo dispositivo - requer 2FA
@@ -97,7 +104,7 @@ def recuperar_senha():
             return jsonify({'erro': 'Email e nova_senha são obrigatórios'}), 400
         
         usuario_recuperar = UsuarioRecuperarSenha(**dados)
-        usuario_repo = UsuarioRepository(request.app.db)
+        usuario_repo = UsuarioRepository(current_app.db)
         recuperar_use_case = RecuperarSenha(usuario_repo)
         
         resultado = recuperar_use_case.executar(usuario_recuperar.email, usuario_recuperar.nova_senha)

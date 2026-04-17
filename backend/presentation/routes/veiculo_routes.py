@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, current_app
 from infra.veiculo_repository import VeiculoRepository
 from use_cases.veiculo_commands import CriarVeiculo, AtualizarVeiculo, DeletarVeiculo
 from domain.veiculo import VeiculoCreate
@@ -13,7 +13,7 @@ bp = Blueprint('veiculo', __name__, url_prefix='/api/veiculos')
 def criar_veiculo():
     try:
         dados = request.get_json()
-        veiculo_repo = VeiculoRepository(request.app.db)
+        veiculo_repo = VeiculoRepository(current_app.db)
         criar_use_case = CriarVeiculo(veiculo_repo)
         
         veiculo_create = VeiculoCreate(**dados)
@@ -28,7 +28,7 @@ def criar_veiculo():
 @requer_token
 def obter_veiculo(veiculo_id):
     try:
-        veiculo_repo = VeiculoRepository(request.app.db)
+        veiculo_repo = VeiculoRepository(current_app.db)
         veiculo = veiculo_repo.buscar_por_id(veiculo_id)
         if not veiculo:
             return jsonify({'erro': 'Veículo não encontrado'}), 404
@@ -40,7 +40,7 @@ def obter_veiculo(veiculo_id):
 @requer_token
 def listar_veiculos():
     try:
-        veiculo_repo = VeiculoRepository(request.app.db)
+        veiculo_repo = VeiculoRepository(current_app.db)
         veiculos = veiculo_repo.listar_todos()
         return jsonify(veiculos), 200
     except Exception as e:
@@ -52,7 +52,7 @@ def listar_veiculos():
 def atualizar_veiculo(veiculo_id):
     try:
         dados = request.get_json()
-        veiculo_repo = VeiculoRepository(request.app.db)
+        veiculo_repo = VeiculoRepository(current_app.db)
         atualizar_use_case = AtualizarVeiculo(veiculo_repo)
         
         resultado = atualizar_use_case.executar(veiculo_id, dados)
@@ -67,7 +67,7 @@ def atualizar_veiculo(veiculo_id):
 @requer_perfil('motorista')
 def deletar_veiculo(veiculo_id):
     try:
-        veiculo_repo = VeiculoRepository(request.app.db)
+        veiculo_repo = VeiculoRepository(current_app.db)
         deletar_use_case = DeletarVeiculo(veiculo_repo)
         
         resultado = deletar_use_case.executar(veiculo_id)

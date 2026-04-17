@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, current_app
 from middleware.autenticacao import requer_token
 from infra.dois_fatores_repository import Dois_FatoresRepository
 from infra.usuario_repository import UsuarioRepository
@@ -48,8 +48,8 @@ def gerar_codigo():
         dispositivo_hash = calcular_dispositivo_hash(user_agent, ip_address)
 
         # Get repositories
-        usuario_repo = UsuarioRepository(request.app.db)
-        dois_fatores_repo = Dois_FatoresRepository(request.app.db)
+        usuario_repo = UsuarioRepository(current_app.db)
+        dois_fatores_repo = Dois_FatoresRepository(current_app.db)
 
         # Gerar código
         use_case = GenerarCodigoVerificacao2FA(usuario_repo, dois_fatores_repo)
@@ -69,7 +69,7 @@ def enviar_codigo(dois_fatores_id):
     Envia código 2FA via SMS ou Email
     """
     try:
-        dois_fatores_repo = Dois_FatoresRepository(request.app.db)
+        dois_fatores_repo = Dois_FatoresRepository(current_app.db)
         
         use_case = EnviarCodigoVerificacao2FA(dois_fatores_repo)
         resultado = use_case.executar(dois_fatores_id)
@@ -108,7 +108,7 @@ def verificar_codigo():
         ip_address = request.remote_addr
         dispositivo_hash = calcular_dispositivo_hash(user_agent, ip_address)
 
-        dois_fatores_repo = Dois_FatoresRepository(request.app.db)
+        dois_fatores_repo = Dois_FatoresRepository(current_app.db)
         
         use_case = VerificarCodigoVerificacao2FA(dois_fatores_repo)
         resultado = use_case.executar(usuario_id, dispositivo_hash, codigo_fornecido)
@@ -127,7 +127,7 @@ def reenviar_codigo(dois_fatores_id):
     Reenvia código 2FA
     """
     try:
-        dois_fatores_repo = Dois_FatoresRepository(request.app.db)
+        dois_fatores_repo = Dois_FatoresRepository(current_app.db)
         
         use_case = ReenviarCodigoVerificacao2FA(dois_fatores_repo)
         resultado = use_case.executar(dois_fatores_id)

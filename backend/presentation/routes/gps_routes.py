@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, current_app
 from infra.localizacao_gps_repository import LocalizacaoGPSRepository
 from infra.veiculo_repository import VeiculoRepository
 from use_cases.localizacao_commands import RegistrarLocalizacao, ObterUltimaLocalizacao, ObterHistoricoLocalizacao
@@ -14,8 +14,8 @@ bp = Blueprint('gps', __name__, url_prefix='/api/gps')
 def registrar_localizacao():
     try:
         dados = request.get_json()
-        localizacao_repo = LocalizacaoGPSRepository(request.app.db)
-        veiculo_repo = VeiculoRepository(request.app.db)
+        localizacao_repo = LocalizacaoGPSRepository(current_app.db)
+        veiculo_repo = VeiculoRepository(current_app.db)
         
         registrar_use_case = RegistrarLocalizacao(localizacao_repo, veiculo_repo)
         
@@ -31,8 +31,8 @@ def registrar_localizacao():
 @requer_token
 def obter_ultima_localizacao(veiculo_id):
     try:
-        localizacao_repo = LocalizacaoGPSRepository(request.app.db)
-        veiculo_repo = VeiculoRepository(request.app.db)
+        localizacao_repo = LocalizacaoGPSRepository(current_app.db)
+        veiculo_repo = VeiculoRepository(current_app.db)
         
         obter_use_case = ObterUltimaLocalizacao(localizacao_repo, veiculo_repo)
         resultado = obter_use_case.executar(veiculo_id)
@@ -50,8 +50,8 @@ def obter_ultima_localizacao(veiculo_id):
 def obter_historico_localizacao(veiculo_id):
     try:
         limite = request.args.get('limite', 100, type=int)
-        localizacao_repo = LocalizacaoGPSRepository(request.app.db)
-        veiculo_repo = VeiculoRepository(request.app.db)
+        localizacao_repo = LocalizacaoGPSRepository(current_app.db)
+        veiculo_repo = VeiculoRepository(current_app.db)
         
         obter_use_case = ObterHistoricoLocalizacao(localizacao_repo, veiculo_repo)
         resultado = obter_use_case.executar(veiculo_id, limite)
