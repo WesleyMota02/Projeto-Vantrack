@@ -36,7 +36,7 @@ class Database:
                 password=db_password,
                 database=db_name,
                 port=db_port,
-                autocommit=True
+                autocommit=False
             )
             self._test_connection()
             logger.info("Database connection pool initialized successfully")
@@ -50,6 +50,7 @@ class Database:
             conn = self.pool.get_connection()
             cursor = conn.cursor(dictionary=True)
             cursor.execute("SELECT 1")
+            cursor.fetchall()
             cursor.close()
             conn.close()
         except Exception as e:
