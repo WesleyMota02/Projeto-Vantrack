@@ -1,6 +1,6 @@
 import os
-from sqlalchemy import create_engine, text
-from sqlalchemy.orm import sessionmaker, scoped_session
+import mysql.connector
+from mysql.connector import pooling
 from contextlib import contextmanager
 import logging
 
@@ -24,21 +24,22 @@ class Database:
         db_user = os.getenv("DB_USER", "root")
         db_password = os.getenv("DB_PASSWORD", "")
         db_name = os.getenv("DB_NAME", "vantrack")
-        db_port = os.getenv("DB_PORT", "3306")
-
-        connection_string = f"mysql+mysqlconnector://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
+        db_port = int(os.getenv("DB_PORT", "3306"))
 
         try:
-            self.engine = create_engine(
-                connection_string,
-                pool_size=10,
-                max_overflow=20,
-                pool_pre_ping=True,
-                echo=False,
+            self.pool = pooling.MySQLConnectionPool(
+                pool_name="vantrack_pool",
+                pool_size=5,
+                pool_reset_session=True,
+                host=db_host,
+                user=db_user,
+                password=db_password,
+                database=db_name,
+                port=db_port,
+                autocommit=True
             )
-            self.SessionLocal = scoped_session(sessionmaker(bind=self.engine))
             self._test_connection()
-            logger.info("Database connection initialized successfully")
+            logger.info("Database connection pool initialized successfully")
             self._initialized = True
         except Exception as e:
             logger.error(f"Database initialization error: {e}")
@@ -46,41 +47,51 @@ class Database:
 
     def _test_connection(self):
         try:
-            with self.engine.connect() as conn:
-                conn.execute(text("SELECT 1"))
-                conn.commit()
+            conn = self.pool.get_connection()
+            cursor = conn.cursor(dictionary=True)
+            cursor.execute("SELECT 1")
+            cursor.close()
+            conn.close()
         except Exception as e:
             logger.error(f"Database connection test failed: {e}")
             raise
 
     @contextmanager
     def get_connection(self):
-        session = self.SessionLocal()
+        conn = None
         try:
-            yield session
-            session.commit()
+            conn = self.pool.get_connection()
+            yield conn
         except Exception as e:
-            session.rollback()
-            logger.error(f"Session error: {e}")
+            logger.error(f"Connection error: {e}")
             raise
         finally:
-            session.close()
+            if conn:
+                conn.close()
 
     def execute_query(self, query, params=None, fetch=False):
-        with self.get_connection() as session:
-            result = session.execute(text(query), params or {})
-            if fetch:
-                return result.fetchall()
-            return result.rowcount
+        with self.get_connection() as conn:
+            cursor = conn.cursor(dictionary=True)
+            try:
+                cursor.execute(query, params or ())
+                if fetch:
+                    return cursor.fetchall()
+                return cursor.rowcount
+            finally:
+                cursor.close()
 
     def execute_query_one(self, query, params=None):
-        with self.get_connection() as session:
-            result = session.execute(text(query), params or {})
-            return result.fetchone()
+        with self.get_connection() as conn:
+            cursor = conn.cursor(dictionary=True)
+            try:
+                cursor.execute(query, params or ())
+                return cursor.fetchone()
+            finally:
+                cursor.close()
 
     def close(self):
-        if hasattr(self, "SessionLocal"):
-            self.SessionLocal.remove()
-        if hasattr(self, "engine"):
-            self.engine.dispose()
-            logger.info("Database connection closed")
+        try:
+            self.pool.close()
+            logger.info("Database connection pool closed")
+        except Exception as e:
+            logger.error(f"Error closing pool: {e}")
