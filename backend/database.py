@@ -75,6 +75,9 @@ class Database:
             cursor = conn.cursor(dictionary=True)
             try:
                 cursor.execute(query, params or ())
+                # Auto-commit para INSERT, UPDATE, DELETE
+                if any(query.strip().upper().startswith(stmt) for stmt in ['INSERT', 'UPDATE', 'DELETE']):
+                    conn.commit()
                 if fetch:
                     return cursor.fetchall()
                 return cursor.rowcount
@@ -86,6 +89,9 @@ class Database:
             cursor = conn.cursor(dictionary=True)
             try:
                 cursor.execute(query, params or ())
+                # Auto-commit para INSERT, UPDATE, DELETE
+                if any(query.strip().upper().startswith(stmt) for stmt in ['INSERT', 'UPDATE', 'DELETE']):
+                    conn.commit()
                 return cursor.fetchone()
             finally:
                 cursor.close()
