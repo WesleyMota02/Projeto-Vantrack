@@ -32,3 +32,11 @@ npm-debug.log*
 *.zip
 *.7z
 *.log
+
+# === Docker & Database ===
+# Dados do MySQL - NÃO fazer commit dos arquivos binários do banco
+docker/mysql/data/
+# Logs de containers
+docker/logs/
+# Arquivos temporários do Docker
+.dockerignore
