@@ -35,17 +35,47 @@ def criar_app():
 
     from presentation.sockets.realtime_handlers import RastreamentoSocket, ChatSocket
     
-    socketio.on_connect(namespace='/rastreamento')(RastreamentoSocket.on_connect(socketio))
-    socketio.on_disconnect(namespace='/rastreamento')(RastreamentoSocket.on_disconnect())
-    socketio.on('atualizar_localizacao', namespace='/rastreamento')(RastreamentoSocket.on_atualizar_localizacao(socketio, app))
-    socketio.on('inscrever_rota', namespace='/rastreamento')(RastreamentoSocket.on_inscrever_rota(socketio))
-    socketio.on('desinscrever_rota', namespace='/rastreamento')(RastreamentoSocket.on_desinscrever_rota(socketio))
+    # Registro de handlers Socket.IO para rastreamento
+    @socketio.on('connect', namespace='/rastreamento')
+    def rastreamento_connect():
+        return RastreamentoSocket.on_connect(socketio)()
     
-    socketio.on_connect(namespace='/chat')(ChatSocket.on_connect_chat(socketio))
-    socketio.on_disconnect(namespace='/chat')(ChatSocket.on_disconnect_chat())
-    socketio.on('enviar_mensagem', namespace='/chat')(ChatSocket.on_enviar_mensagem(socketio, app))
-    socketio.on('inscrever_conversa', namespace='/chat')(ChatSocket.on_inscrever_conversa(socketio))
-    socketio.on('marcar_como_lida', namespace='/chat')(ChatSocket.on_marcar_como_lida(socketio, app))
+    @socketio.on('disconnect', namespace='/rastreamento')
+    def rastreamento_disconnect():
+        return RastreamentoSocket.on_disconnect()()
+    
+    @socketio.on('atualizar_localizacao', namespace='/rastreamento')
+    def rastreamento_atualizar_localizacao(data):
+        return RastreamentoSocket.on_atualizar_localizacao(socketio, app)(data)
+    
+    @socketio.on('inscrever_rota', namespace='/rastreamento')
+    def rastreamento_inscrever_rota(data):
+        return RastreamentoSocket.on_inscrever_rota(socketio)(data)
+    
+    @socketio.on('desinscrever_rota', namespace='/rastreamento')
+    def rastreamento_desinscrever_rota(data):
+        return RastreamentoSocket.on_desinscrever_rota(socketio)(data)
+    
+    # Registro de handlers Socket.IO para chat
+    @socketio.on('connect', namespace='/chat')
+    def chat_connect():
+        return ChatSocket.on_connect_chat(socketio)()
+    
+    @socketio.on('disconnect', namespace='/chat')
+    def chat_disconnect():
+        return ChatSocket.on_disconnect_chat()()
+    
+    @socketio.on('enviar_mensagem', namespace='/chat')
+    def chat_enviar_mensagem(data):
+        return ChatSocket.on_enviar_mensagem(socketio, app)(data)
+    
+    @socketio.on('inscrever_conversa', namespace='/chat')
+    def chat_inscrever_conversa(data):
+        return ChatSocket.on_inscrever_conversa(socketio)(data)
+    
+    @socketio.on('marcar_como_lida', namespace='/chat')
+    def chat_marcar_como_lida(data):
+        return ChatSocket.on_marcar_como_lida(socketio, app)(data)
 
     @app.errorhandler(404)
     def nao_encontrado(e):

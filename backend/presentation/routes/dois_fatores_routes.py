@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from middleware.auth_middleware import requer_token
+from middleware.autenticacao import requer_token
 from infra.dois_fatores_repository import Dois_FatoresRepository
 from infra.usuario_repository import UsuarioRepository
 from use_cases.dois_fatores_commands import (
