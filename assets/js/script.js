@@ -78,12 +78,11 @@ async function handleCadastro(e,tp){
     const cpfSemMascara=document.getElementById('cpf').value.replace(/\D/g,'');
     const telefoneSemMascara=document.getElementById('telefone').value.replace(/\D/g,'');
     const nome=document.getElementById('nome').value.trim();
-    const sobrenome=document.getElementById('sobrenome')?.value.trim() || '';
     const email=document.getElementById('email').value.trim();
     const cidade=document.getElementById('cidade').value.trim();
     
     console.log('[CADASTRO] Dados coletados:');
-    console.log(`  Nome: ${nome}${sobrenome?' '+sobrenome:''}`);
+    console.log(`  Nome: ${nome}`);
     console.log(`  Email: ${email}`);
     console.log(`  CPF: ${cpfSemMascara} (${cpfSemMascara.length} dígitos)`);
     console.log(`  Telefone: ${telefoneSemMascara} (${telefoneSemMascara.length} dígitos)`);
@@ -95,12 +94,10 @@ async function handleCadastro(e,tp){
     b.textContent='Cadastrando...';
     
     try{
-        const nomeCompleto = sobrenome ? `${nome} ${sobrenome}` : nome;
-        
         const payload={
             email: email,
             cpf: cpfSemMascara,
-            nome: nomeCompleto,
+            nome: nome,
             telefone: telefoneSemMascara,
             cidade: cidade,
             tipo_perfil: tp,

@@ -2,10 +2,7 @@ function validarEmail(e) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e); }
 function validarCPF(c) { return c.replace(/\D/g,'').length === 11; }
 function validarTelefone(t) { return /^[0-9]{10,11}$/.test(t.replace(/\D/g,'')); }
 function validarSenha(s) {
-    if (s.length < 8) return { valido: false, erro: 'Mínimo 8 caracteres' };
-    if (!/[A-Z]/.test(s)) return { valido: false, erro: 'Precisa de maiúscula' };
-    if (!/[a-z]/.test(s)) return { valido: false, erro: 'Precisa de minúscula' };
-    if (!/[0-9]/.test(s)) return { valido: false, erro: 'Precisa de número' };
+    if (s.length < 4) return { valido: false, erro: 'Mínimo 4 caracteres' };
     return { valido: true };
 }
 function validarNome(n) { return n.trim().length >= 3 && /^[a-zA-Zá-ý\s]+$/.test(n); }
