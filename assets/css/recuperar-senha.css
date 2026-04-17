@@ -1,140 +1,222 @@
+/* ========================================
+   RECUPERAR SENHA - PÁGINA
+   ======================================== */
+
+:root {
+  --azul-escuro: #0f2a4a;
+  --azul-escuro-profundo: #07427b;
+  --azul-claro: #0099ff;
+  --branco: #ffffff;
+  --cinza-claro: #e0e0e0;
+  --cinza-border: #d9e0ea;
+  --cinza-placeholder: #a9b4c3;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
 body {
+  font-family: "Poppins", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   background: linear-gradient(180deg, #07427b, #031c3c);
-  display: flex;
-  justify-content: center;
-  align-items: center;
   min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   padding: 20px;
+  position: relative;
 }
 
-.container {
+.container-recuperar {
   width: 100%;
-  max-width: 400px;
+  max-width: 420px;
   text-align: center;
+  position: relative;
+  z-index: 1;
 }
 
-.header {
-  color: var(--white);
-  margin-bottom: 16px;
+/* ========================================
+   HEADER - LOGO E TÍTULO
+   ======================================== */
+
+.header-recuperar {
+  margin-bottom: 28px;
 }
 
 .logo-recuperar {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 2px;
-  margin-bottom: 12px;
+  gap: 12px;
+  margin-bottom: 20px;
+  font-size: 3.5rem;
 }
 
-.logo-recuperar h1 {
-  font-family: "Poppins", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  font-size: 1.9rem;
+.logo-bus {
+  display: inline-block;
+  animation: bounce 2s ease-in-out infinite;
+}
+
+.logo-bus:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.header-recuperar h1 {
+  font-size: 2rem;
   font-weight: 700;
-  line-height: 1.1;
-  color: #ffffff;
+  color: var(--branco);
+  margin-bottom: 12px;
+  line-height: 1.2;
 }
 
-.logo-bus-img {
-  height: auto;
-}
-
-.logo-bus-img:first-child {
-  width: 85px;
-}
-
-.logo-bus-img:last-child {
-  width: 65px;
-}
-
-.header p {
-  font-size: 0.9rem;
-  line-height: 1.4;
+.header-recuperar p {
+  font-size: 0.95rem;
   font-weight: 400;
-  margin-top: 10px;
-  color: #ffffff;
+  color: var(--cinza-claro);
+  line-height: 1.5;
+  margin: 0;
 }
 
-.form-card {
-  background-color: var(--white);
-  border-radius: 26px;
-  padding: 24px 24px 12px;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
-  height: auto;
+/* ========================================
+   FORM CARD
+   ======================================== */
+
+.form-card-recuperar {
+  background-color: var(--branco);
+  border-radius: 28px;
+  padding: 32px 24px 28px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
 }
 
-.input-group {
+.input-group-recuperar {
   display: flex;
   align-items: center;
-  border: 1px solid #d9e0ea;
+  border: 1.5px solid var(--cinza-border);
   border-radius: 999px;
-  padding: 4px 14px;
-  margin-bottom: 12px;
+  padding: 6px 16px;
+  margin-bottom: 16px;
   background-color: #f6f8fb;
-  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+  transition: all 0.3s ease;
 }
 
-.input-group:focus-within {
-  border-color: #0099ff;
-  box-shadow: 0 0 0 2px rgba(0, 153, 255, 0.1);
-}
-
-.input-group input {
-  border: none;
-  outline: none;
-  flex: 1;
-  font-size: 0.9rem;
-  padding: 8px 0;
-  color: #333;
-  background-color: transparent;
-}
-
-.input-group input::placeholder {
-  color: #a9b4c3;
+.input-group-recuperar:focus-within {
+  border-color: var(--azul-claro);
+  box-shadow: 0 0 0 3px rgba(0, 153, 255, 0.1);
+  background-color: #ffffff;
 }
 
 .icon-email {
-  color: #0099ff;
-  font-size: 1rem;
+  color: var(--azul-claro);
+  font-size: 1.1rem;
+  margin-right: 8px;
   flex-shrink: 0;
-  margin-right: 4px;
 }
+
+.input-group-recuperar input {
+  border: none;
+  outline: none;
+  flex: 1;
+  font-size: 0.95rem;
+  padding: 10px 0;
+  color: #333;
+  background-color: transparent;
+  font-family: "Poppins", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.input-group-recuperar input::placeholder {
+  color: var(--cinza-placeholder);
+}
+
+.input-group-recuperar input:focus {
+  color: #333;
+}
+
+/* ========================================
+   BOTÃO ENVIAR
+   ======================================== */
 
 .btn-enviar {
   width: 100%;
-  padding: 10px 0;
-  background-color: #0099ff;
-  color: #ffffff;
+  padding: 12px 0;
+  background-color: var(--azul-claro);
+  color: var(--branco);
   border: none;
   border-radius: 999px;
   font-size: 1rem;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: all 0.3s ease;
+  font-family: "Poppins", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
 .btn-enviar:hover {
   background-color: #0077cc;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 99, 255, 0.3);
 }
 
+.btn-enviar:active {
+  transform: translateY(0);
+}
+
+.btn-enviar:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ========================================
+   RESPONSIVE DESIGN
+   ======================================== */
+
 @media (max-width: 480px) {
-  .container {
-    padding: 10px;
+  .container-recuperar {
+    max-width: 100%;
+    padding: 20px;
   }
 
-  .logo-recuperar h1 {
+  .header-recuperar h1 {
     font-size: 1.7rem;
   }
 
-  .logo-bus-img {
-    width: 60px;
+  .header-recuperar p {
+    font-size: 0.9rem;
+  }
+
+  .form-card-recuperar {
+    padding: 24px 18px 20px;
+  }
+
+  .logo-recuperar {
+    font-size: 3rem;
+  }
+
+  .logo-bus {
+    animation: none;
   }
 }
 
-  .logo-recuperar h1 {
-    font-size: 1.8rem;
+@media (max-width: 360px) {
+  .header-recuperar h1 {
+    font-size: 1.5rem;
   }
 
-  .logo-bus-img {
-    width: 60px;
+  .logo-recuperar {
+    font-size: 2.5rem;
+  }
+
+  .form-card-recuperar {
+    padding: 20px 14px 16px;
   }
 }

@@ -13,26 +13,35 @@
     <link rel="stylesheet" href="../assets/css/recuperar-senha.css">
 </head>
 <body>
+    <!-- Padrão decorativo de mapa nas bordas -->
+    <div class="map-bg-pattern">
+        <span class="pattern-top-right">⬆️ ⭐ 🧭</span>
+        <span class="pattern-bottom-left">⭐ 🧭 📍</span>
+    </div>
+
     <div id="notificacoes" class="container-notificacoes"></div>
-    <div class="container">
-        <div class="header">
+    
+    <div class="container-recuperar">
+        <div class="header-recuperar">
             <div class="logo-recuperar">
-                <img src="../assets/img/van.png.png" alt="Logo Vantrack" class="logo-bus-img">
-                <h1>Recuperar Senha</h1>
-                <img src="../assets/img/van.png.png" alt="Logo Vantrack" class="logo-bus-img">
+                <span class="logo-bus">🚌</span>
+                <span class="logo-bus">🚌</span>
             </div>
+            <h1>Recuperar Senha</h1>
             <p>Digite seu endereço de e-mail para receber instruções para redefinir sua senha.</p>
         </div>
-        <div class="form-card">
+        
+        <div class="form-card-recuperar">
             <form id="form-recuperar-senha">
-                <div class="input-group">
+                <div class="input-group-recuperar">
                     <i class="fas fa-envelope icon-email"></i>
-                    <input type="email" id="email-recuperar" name="email" data-validar="email" placeholder="E-mail">
+                    <input type="email" id="email-recuperar" name="email" data-validar="email" placeholder="E-mail" required>
                 </div>
                 <button type="submit" class="btn-enviar">Enviar</button>
             </form>
         </div>
     </div>
+
     <script src="../assets/js/config.js"></script>
     <script src="../assets/js/validators.js"></script>
     <script src="../assets/js/login.js"></script>

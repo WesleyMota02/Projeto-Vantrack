@@ -293,3 +293,87 @@
     flex-direction: column;
   }
 }
+
+/* ========================================
+   MAP BACKGROUND PATTERN DECORATION
+   ======================================== */
+.map-bg-pattern {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.map-bg-pattern::before,
+.map-bg-pattern::after {
+  content: '';
+  position: absolute;
+  font-size: 120px;
+  opacity: 0.08;
+  font-weight: bold;
+  color: #1a1a1a;
+}
+
+/* Canto Superior Esquerdo - Bússola, Pin, Seta */
+.map-bg-pattern::before {
+  top: -30px;
+  left: -40px;
+  content: '🧭 📍 ➡️';
+  font-size: 100px;
+  line-height: 1.2;
+  white-space: pre-wrap;
+  width: 200px;
+}
+
+/* Canto Inferior Direito - Pin, Seta, Estrela */
+.map-bg-pattern::after {
+  bottom: -30px;
+  right: -40px;
+  content: '📍 ⬆️ ⭐';
+  font-size: 100px;
+  line-height: 1.2;
+  white-space: pre-wrap;
+  width: 200px;
+}
+
+/* Canto Superior Direito - Seta, Estrela, Bússola */
+.map-bg-pattern .pattern-top-right {
+  position: absolute;
+  top: -20px;
+  right: -30px;
+  font-size: 90px;
+  opacity: 0.06;
+  color: #1a1a1a;
+  line-height: 1.2;
+  pointer-events: none;
+}
+
+/* Canto Inferior Esquerdo - Estrela, Bússola, Pin */
+.map-bg-pattern .pattern-bottom-left {
+  position: absolute;
+  bottom: -20px;
+  left: -30px;
+  font-size: 90px;
+  opacity: 0.06;
+  color: #1a1a1a;
+  line-height: 1.2;
+  pointer-events: none;
+}
+
+/* Garantir que conteúdo fica acima do padrão */
+body {
+  position: relative;
+  z-index: 1;
+}
+
+main,
+.container,
+#tela-cadastro,
+.conteudo-cadastro {
+  position: relative;
+  z-index: 1;
+}
