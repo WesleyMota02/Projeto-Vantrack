@@ -16,50 +16,81 @@ bp = Blueprint('auth', __name__, url_prefix='/api')
 
 @bp.route('/cadastro', methods=['POST'])
 def cadastro():
+    """
+    Endpoint de cadastro de usuários (aluno ou motorista).
+    Espera payload JSON com: nome, cpf, email, telefone, cidade, tipo_perfil, senha
+    """
     try:
+        # Extrai dados do JSON
         dados = request.get_json()
+        print(f"\n[CADASTRO] Dados recebidos: {dados}")
+        
+        if dados is None:
+            print("[CADASTRO] ✗ Body JSON vazio ou inválido")
+            return jsonify({'erro': 'Corpo da requisição deve ser JSON válido'}), 400
         
         # Validação básica - Verifica presença de campos obrigatórios
         campos_obrigatorios = ['email', 'cpf', 'nome', 'telefone', 'cidade', 'tipo_perfil', 'senha']
-        if not all(campo in dados for campo in campos_obrigatorios):
-            return jsonify({'erro': 'Campos obrigatórios faltando'}), 400
+        campos_faltando = [c for c in campos_obrigatorios if c not in dados]
+        
+        if campos_faltando:
+            print(f"[CADASTRO] ✗ Campos faltando: {campos_faltando}")
+            return jsonify({'erro': f'Campos obrigatórios faltando: {", ".join(campos_faltando)}'}), 400
         
         # VALIDAÇÃO CRÍTICA: Verifica se os campos estão vazios ou são None
         # Isso evita erros falsos de duplicidade no banco de dados
         campos_vazios = []
         for campo in campos_obrigatorios:
             valor = dados.get(campo)
-            # Verifica se é None, string vazia, ou string apenas com espaços
             if valor is None or (isinstance(valor, str) and len(valor.strip()) == 0):
                 campos_vazios.append(campo)
         
         if campos_vazios:
+            print(f"[CADASTRO] ✗ Campos vazios: {campos_vazios}")
             return jsonify({'erro': f'Campos obrigatórios estão vazios: {", ".join(campos_vazios)}'}), 400
         
         # VALIDAÇÃO ADICIONAL: CPF e Telefone devem ter dígitos suficientes
         cpf_apenas_digitos = dados.get('cpf', '').replace('.', '').replace('-', '').replace('/', '')
         telefone_apenas_digitos = dados.get('telefone', '').replace('(', '').replace(')', '').replace('-', '').replace(' ', '')
         
+        print(f"[CADASTRO] CPF dígitos: {len(cpf_apenas_digitos)} (esperado: 11)")
+        print(f"[CADASTRO] Telefone dígitos: {len(telefone_apenas_digitos)} (esperado: 10-11)")
+        
         if len(cpf_apenas_digitos) < 11:
+            print("[CADASTRO] ✗ CPF inválido (menos de 11 dígitos)")
             return jsonify({'erro': 'CPF deve ter pelo menos 11 dígitos'}), 400
         
         if len(telefone_apenas_digitos) < 10:
+            print("[CADASTRO] ✗ Telefone inválido (menos de 10 dígitos)")
             return jsonify({'erro': 'Telefone deve ter pelo menos 10 dígitos'}), 400
         
+        # Criar objeto UsuarioCreate
+        print("[CADASTRO] Criando objeto UsuarioCreate...")
         usuario_create = UsuarioCreate(**dados)
+        
+        # Preparar repository e use case
+        print("[CADASTRO] Inicializando repository e use case...")
         usuario_repo = UsuarioRepository(current_app.db)
         cadastrar_use_case = CadastrarUsuario(usuario_repo)
         
+        # Executar cadastro
+        print("[CADASTRO] Executando cadastro...")
         resultado = cadastrar_use_case.executar(usuario_create)
+        
+        print(f"[CADASTRO] ✓ Sucesso! ID: {resultado.get('id')}")
         return jsonify(resultado), 201
     
     except VantrackException as e:
-        return jsonify({'erro': str(e)}), 400
+        erro_msg = str(e)
+        print(f"[CADASTRO] ✗ VantrackException: {erro_msg}")
+        return jsonify({'erro': erro_msg}), 400
+    
     except Exception as e:
-        logger.error(f"Erro ao cadastrar: {str(e)}\n{traceback.format_exc()}")
-        print(f"ERRO NO CADASTRO: {e}")
-        print(traceback.format_exc())
-        return jsonify({'erro': 'Erro ao cadastrar usuário'}), 500
+        erro_msg = str(e)
+        logger.error(f"[CADASTRO] ✗ Erro genérico: {erro_msg}\n{traceback.format_exc()}")
+        print(f"\n[CADASTRO] ✗ ERRO NO CADASTRO: {erro_msg}")
+        print(f"[CADASTRO] StackTrace:\n{traceback.format_exc()}\n")
+        return jsonify({'erro': f'Falha ao cadastrar usuário: {erro_msg}'}), 500
 
 @bp.route('/login', methods=['POST'])
 def login():

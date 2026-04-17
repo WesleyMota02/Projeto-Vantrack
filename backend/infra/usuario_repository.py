@@ -4,6 +4,8 @@ class UsuarioRepository:
 
     def criar(self, usuario):
         from uuid import uuid4
+        import traceback
+        
         usuario_id = str(uuid4())
         
         query = """
@@ -14,18 +16,30 @@ class UsuarioRepository:
                   usuario.cidade, usuario.tipo_perfil, usuario.senha_hash, True)
         
         try:
+            print(f"[REPO] Insertando usuário: id={usuario_id}, email={usuario.email}, cpf={usuario.cpf}")
             self.db.execute_query(query, params)
+            print(f"[REPO] ✓ Insert bem-sucedido")
         except Exception as e:
-            print(f"Erro ao inserir usuário: {e}")
+            erro_msg = str(e)
+            print(f"[REPO] ✗ Erro ao inserir usuário: {erro_msg}")
+            print(f"[REPO] StackTrace:\n{traceback.format_exc()}")
             raise
         
-        # Buscar o usuário criado
-        usuario_criado = self.buscar_por_id(usuario_id)
-        
-        if usuario_criado is None:
-            raise Exception(f"Falha ao criar usuário. ID: {usuario_id}")
+        try:
+            # Buscar o usuário criado
+            print(f"[REPO] Buscando usuário criado: id={usuario_id}")
+            usuario_criado = self.buscar_por_id(usuario_id)
             
-        return usuario_criado
+            if usuario_criado is None:
+                raise Exception(f"Falha ao criar usuário. ID: {usuario_id} - usuário não encontrado após insert")
+            
+            print(f"[REPO] ✓ Usuário encontrado: {usuario_criado.get('email')}")
+            return usuario_criado
+        except Exception as e:
+            erro_msg = str(e)
+            print(f"[REPO] ✗ Erro ao buscar usuário criado: {erro_msg}")
+            print(f"[REPO] StackTrace:\n{traceback.format_exc()}")
+            raise
 
     def buscar_por_id(self, usuario_id):
         query = "SELECT * FROM usuarios WHERE id = %s AND ativo = TRUE"

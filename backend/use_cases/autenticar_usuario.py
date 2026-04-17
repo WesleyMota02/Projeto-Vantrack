@@ -43,35 +43,57 @@ class CadastrarUsuario:
         self.usuario_repository = usuario_repository
 
     def executar(self, dados: UsuarioCreate):
-        # Validar duplicatas
-        if self.usuario_repository.email_existe(dados.email):
-            raise EmailJaCadastrado(f"Email {dados.email} já cadastrado")
+        print(f"\n[USE-CASE] Iniciando cadastro de usuário: {dados.email}")
         
-        if self.usuario_repository.cpf_existe(dados.cpf):
-            raise CPFJaCadastrado(f"CPF {dados.cpf} já cadastrado")
-        
-        # Hash da senha
-        senha_hash = bcrypt.hashpw(dados.senha.encode(), bcrypt.gensalt()).decode()
-        
-        usuario = Usuario(
-            email=dados.email,
-            cpf=dados.cpf,
-            nome=dados.nome,
-            telefone=dados.telefone,
-            cidade=dados.cidade,
-            tipo_perfil=dados.tipo_perfil,
-            senha_hash=senha_hash
-        )
-        
-        resultado = self.usuario_repository.criar(usuario)
-        
-        return {
-            'id': resultado['id'],
-            'email': resultado['email'],
-            'nome': resultado['nome'],
-            'tipo_perfil': resultado['tipo_perfil'],
-            'mensagem': 'Usuário cadastrado com sucesso'
-        }
+        try:
+            # Validar duplicatas
+            print(f"[USE-CASE] Verificando se email já existe: {dados.email}")
+            if self.usuario_repository.email_existe(dados.email):
+                raise EmailJaCadastrado(f"Email {dados.email} já cadastrado")
+            print(f"[USE-CASE] ✓ Email disponível")
+            
+            print(f"[USE-CASE] Verificando se CPF já existe: {dados.cpf}")
+            if self.usuario_repository.cpf_existe(dados.cpf):
+                raise CPFJaCadastrado(f"CPF {dados.cpf} já cadastrado")
+            print(f"[USE-CASE] ✓ CPF disponível")
+            
+            # Hash da senha
+            print(f"[USE-CASE] Hasheando senha...")
+            senha_hash = bcrypt.hashpw(dados.senha.encode(), bcrypt.gensalt()).decode()
+            print(f"[USE-CASE] ✓ Senha hasheada")
+            
+            # Criar objeto Usuario
+            print(f"[USE-CASE] Criando objeto Usuario...")
+            usuario = Usuario(
+                email=dados.email,
+                cpf=dados.cpf,
+                nome=dados.nome,
+                telefone=dados.telefone,
+                cidade=dados.cidade,
+                tipo_perfil=dados.tipo_perfil,
+                senha_hash=senha_hash
+            )
+            
+            # Inserir no banco
+            print(f"[USE-CASE] Inserindo usuário no banco...")
+            resultado = self.usuario_repository.criar(usuario)
+            print(f"[USE-CASE] ✓ Usuário criado com sucesso: {resultado.get('id')}")
+            
+            return {
+                'id': resultado['id'],
+                'email': resultado['email'],
+                'nome': resultado['nome'],
+                'tipo_perfil': resultado['tipo_perfil'],
+                'mensagem': 'Usuário cadastrado com sucesso'
+            }
+        except (EmailJaCadastrado, CPFJaCadastrado) as e:
+            print(f"[USE-CASE] ✗ Erro de duplicidade: {str(e)}")
+            raise
+        except Exception as e:
+            print(f"[USE-CASE] ✗ Erro genérico: {str(e)}")
+            import traceback
+            print(f"[USE-CASE] StackTrace:\n{traceback.format_exc()}")
+            raise
 
 class RecuperarSenha:
     def __init__(self, usuario_repository):
