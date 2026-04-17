@@ -1,4 +1,4 @@
-from exceptions import VantrackException, UsuarioNaoAutorizado
+from exceptions import VantrackException, PermissaoNegada
 from datetime import datetime
 import hashlib
 from twilio.rest import Client
