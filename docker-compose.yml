@@ -47,9 +47,9 @@ services:
     
     # Mapeamento de Portas
     # Formato: <porta-externa>:<porta-interna>
-    # Acesso local: localhost:3306
+    # Acesso local: localhost:3307 (porta alterada para evitar conflito)
     ports:
-      - "3306:3306"
+      - "3307:3306"
     
     # Volumes - A Mágica da Persistência e Auto-Inicialização
     volumes:
