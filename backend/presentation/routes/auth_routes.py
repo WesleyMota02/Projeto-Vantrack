@@ -19,10 +19,32 @@ def cadastro():
     try:
         dados = request.get_json()
         
-        # Validação básica
+        # Validação básica - Verifica presença de campos obrigatórios
         campos_obrigatorios = ['email', 'cpf', 'nome', 'telefone', 'cidade', 'tipo_perfil', 'senha']
         if not all(campo in dados for campo in campos_obrigatorios):
             return jsonify({'erro': 'Campos obrigatórios faltando'}), 400
+        
+        # VALIDAÇÃO CRÍTICA: Verifica se os campos estão vazios ou são None
+        # Isso evita erros falsos de duplicidade no banco de dados
+        campos_vazios = []
+        for campo in campos_obrigatorios:
+            valor = dados.get(campo)
+            # Verifica se é None, string vazia, ou string apenas com espaços
+            if valor is None or (isinstance(valor, str) and len(valor.strip()) == 0):
+                campos_vazios.append(campo)
+        
+        if campos_vazios:
+            return jsonify({'erro': f'Campos obrigatórios estão vazios: {", ".join(campos_vazios)}'}), 400
+        
+        # VALIDAÇÃO ADICIONAL: CPF e Telefone devem ter dígitos suficientes
+        cpf_apenas_digitos = dados.get('cpf', '').replace('.', '').replace('-', '').replace('/', '')
+        telefone_apenas_digitos = dados.get('telefone', '').replace('(', '').replace(')', '').replace('-', '').replace(' ', '')
+        
+        if len(cpf_apenas_digitos) < 11:
+            return jsonify({'erro': 'CPF deve ter pelo menos 11 dígitos'}), 400
+        
+        if len(telefone_apenas_digitos) < 10:
+            return jsonify({'erro': 'Telefone deve ter pelo menos 10 dígitos'}), 400
         
         usuario_create = UsuarioCreate(**dados)
         usuario_repo = UsuarioRepository(current_app.db)

@@ -20,21 +20,54 @@ function validarFormulario(f) {
     let v=true;
     f.querySelectorAll('input[data-validar]').forEach(i=>{
         const t=i.getAttribute('data-validar'); let e='';
-        if (i.hasAttribute('required')&&!i.value.trim()) e='Obrigatório';
-        else if (i.value.trim()) {
+        const val = i.value.trim();
+        
+        // Validação obrigatória - SEMPRE
+        if(!val) {
+            e='Campo obrigatório';
+            console.log(`[VALIDAÇÃO] ${t} está vazio`);
+        }
+        // Se tem valor, validar pelo tipo
+        else {
             switch(t) {
-                case 'email': if(!validarEmail(i.value)) e='Email inválido'; break;
-                case 'cpf': if(!validarCPF(i.value)) e='CPF inválido'; break;
-                case 'telefone': if(!validarTelefone(i.value)) e='Telefone inválido'; break;
-                case 'senha': const rs=validarSenha(i.value); if(!rs.valido) e=rs.erro; break;
-                case 'nome': if(!validarNome(i.value)) e='Nome inválido'; break;
-                case 'cidade': if(!validarCidade(i.value)) e='Cidade inválida'; break;
-                case 'horario': if(!validarHorario(i.value)) e='Formato HH:MM'; break;
-                case 'capacidade': if(!validarCapacidade(i.value)) e='1-100'; break;
-                case 'ano': if(!validarAno(i.value)) e='2000-atual'; break;
+                case 'email': 
+                    if(!validarEmail(i.value)) e='Email inválido'; 
+                    break;
+                case 'cpf': 
+                    if(!validarCPF(i.value)) e='CPF deve ter 11 dígitos'; 
+                    break;
+                case 'telefone': 
+                    if(!validarTelefone(i.value)) e='Telefone deve ter 10-11 dígitos'; 
+                    break;
+                case 'senha': 
+                    const rs=validarSenha(i.value); 
+                    if(!rs.valido) e=rs.erro; 
+                    break;
+                case 'nome': 
+                    if(!validarNome(i.value)) e='Nome deve ter 3+ caracteres'; 
+                    break;
+                case 'cidade': 
+                    if(!validarCidade(i.value)) e='Cidade deve ter 3+ caracteres'; 
+                    break;
+                case 'horario': 
+                    if(!validarHorario(i.value)) e='Formato HH:MM'; 
+                    break;
+                case 'capacidade': 
+                    if(!validarCapacidade(i.value)) e='1-100'; 
+                    break;
+                case 'ano': 
+                    if(!validarAno(i.value)) e='2000-atual'; 
+                    break;
             }
         }
-        if (e) { mostrarErroFormulario(i, e); v=false; } else limparErroFormulario(i);
+        
+        if (e) { 
+            mostrarErroFormulario(i, e); 
+            v=false; 
+        } else { 
+            limparErroFormulario(i);
+        }
     });
+    console.log(`[VALIDAÇÃO] Resultado final: ${v?'✓ VÁLIDO':'✗ INVÁLIDO'}`);
     return v;
 }

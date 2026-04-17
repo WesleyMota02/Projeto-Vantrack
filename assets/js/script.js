@@ -1,8 +1,19 @@
 document.addEventListener('DOMContentLoaded',()=>{
+    console.log('[DOMContentLoaded] Inicializando...');
     const fCA=document.getElementById('form-cadastro-aluno'),fCM=document.getElementById('form-cadastro-motorista');
+    
+    console.log(`[FORMS] Aluno: ${fCA?'✓':'✗'}, Motorista: ${fCM?'✓':'✗'}`);
+    
     if(fCA) fCA.addEventListener('submit',e=>handleCadastro(e,'aluno'));
     if(fCM) fCM.addEventListener('submit',e=>handleCadastro(e,'motorista'));
-    document.querySelectorAll('input[data-validar]').forEach(i=>i.addEventListener('blur',()=>validarFormulario(i.form)));
+    
+    document.querySelectorAll('input[data-validar]').forEach(i=>{
+        i.addEventListener('blur',()=>{
+            console.log(`[BLUR] ${i.id} validando...`);
+            validarFormulario(i.form);
+        });
+    });
+    
     document.getElementById('cpf')?.addEventListener('input',aplicarMascaraCPF);
     document.getElementById('telefone')?.addEventListener('input',aplicarMascaraTelefone);
     
@@ -42,63 +53,83 @@ function aplicarMascaraTelefone(e){
 
 async function handleCadastro(e,tp){
     e.preventDefault();
+    console.log(`\n[CADASTRO] ======== INICIANDO CADASTRO ${tp.toUpperCase()} ========`);
+    
     const f=e.target;
     
     // Validar formulário
     if(!validarFormulario(f)){
-        console.log('[CADASTRO] Validação falhou');
-        mostrarNotificacao('Corrija os erros','erro');
+        console.log('[CADASTRO] ✗ Validação FALHOU - campos com erro');
+        mostrarNotificacao('Por favor, preencha todos os campos corretamente','erro');
         return;
     }
+    console.log('[CADASTRO] ✓ Validação passou');
     
     // Validar senhas
     const s=document.getElementById('senha').value,cs=document.getElementById('confirmar-senha').value;
     if(s!==cs){
-        console.log('[CADASTRO] Senhas não conferem');
+        console.log('[CADASTRO] ✗ Senhas não conferem');
         mostrarNotificacao('Senhas não conferem','erro');
         return;
     }
+    console.log('[CADASTRO] ✓ Senhas conferem');
     
     // Preparar dados - REMOVER MÁSCARAS
     const cpfSemMascara=document.getElementById('cpf').value.replace(/\D/g,'');
     const telefoneSemMascara=document.getElementById('telefone').value.replace(/\D/g,'');
+    const nome=document.getElementById('nome').value.trim();
+    const sobrenome=document.getElementById('sobrenome')?.value.trim() || '';
+    const email=document.getElementById('email').value.trim();
+    const cidade=document.getElementById('cidade').value.trim();
     
-    console.log('[CADASTRO] Iniciando...');
+    console.log('[CADASTRO] Dados coletados:');
+    console.log(`  Nome: ${nome}${sobrenome?' '+sobrenome:''}`);
+    console.log(`  Email: ${email}`);
     console.log(`  CPF: ${cpfSemMascara} (${cpfSemMascara.length} dígitos)`);
     console.log(`  Telefone: ${telefoneSemMascara} (${telefoneSemMascara.length} dígitos)`);
+    console.log(`  Cidade: ${cidade}`);
+    console.log(`  Tipo: ${tp}`);
     
     const b=f.querySelector('button[type="submit"]');
     b.disabled=true;
     b.textContent='Cadastrando...';
     
     try{
+        const nomeCompleto = sobrenome ? `${nome} ${sobrenome}` : nome;
+        
         const payload={
-            email:document.getElementById('email').value.trim(),
-            cpf:cpfSemMascara,
-            nome:document.getElementById('nome').value.trim(),
-            telefone:telefoneSemMascara,
-            cidade:document.getElementById('cidade').value.trim(),
-            tipo_perfil:tp,
-            senha:s
+            email: email,
+            cpf: cpfSemMascara,
+            nome: nomeCompleto,
+            telefone: telefoneSemMascara,
+            cidade: cidade,
+            tipo_perfil: tp,
+            senha: s
         };
         
-        console.log('[CADASTRO] Payload:', payload);
+        console.log('[CADASTRO] Enviando payload para /api/cadastro:', payload);
         
-        const r=await fetchAPI('POST','/cadastro',payload);
+        const r=await fetchAPI('POST','/api/cadastro',payload);
+        
+        console.log('[CADASTRO] Resposta recebida:', r);
         
         if(r&&r.id){
-            console.log('[CADASTRO] Sucesso:', r);
-            mostrarNotificacao('Cadastro OK! Redirecionando...','sucesso',1500);
-            setTimeout(()=>window.location.href='/pages/index.html',1500);
+            console.log('[CADASTRO] ✓ SUCESSO! ID:', r.id);
+            mostrarNotificacao('✓ Cadastro realizado com sucesso! Redirecionando...','sucesso',2000);
+            setTimeout(()=>{
+                console.log('[CADASTRO] Redirecionando para /pages/index.html');
+                window.location.href='/pages/index.html';
+            },2000);
         }else{
-            console.log('[CADASTRO] Resposta inválida:', r);
-            mostrarNotificacao('Erro ao cadastrar','erro');
+            console.log('[CADASTRO] ✗ Resposta inválida:', r);
+            mostrarNotificacao(r?.erro || 'Erro ao cadastrar','erro');
         }
     }catch(e){
-        console.error('[CADASTRO] Erro:', e);
+        console.error('[CADASTRO] ✗ ERRO:', e);
         mostrarNotificacao(e.message||'Erro ao cadastrar','erro');
     }finally{
         b.disabled=false;
         b.textContent=tp==='aluno'?'Cadastrar como Aluno':'Cadastrar como Motorista';
+        console.log('[CADASTRO] ======== FIM CADASTRO ========\n');
     }
 }
